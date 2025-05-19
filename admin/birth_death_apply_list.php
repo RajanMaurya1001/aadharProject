@@ -8,110 +8,11 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['role'])) {
 if ($_SESSION['role'] !== '1' && $_SESSION['role'] !== 1) {
     die("Access Denied!");
 }
+
 include('config.php');
 include 'layout/header.php';
 ?>
-<!--start header -->
-<style>
-    /* Custom styling for the table */
-    .table-responsive {
-        max-height: 500px;
-        overflow: auto;
-        position: relative;
-        border: 1px solid #dee2e6;
-        border-radius: 5px;
-    }
 
-    /* Fixed table layout for equal column widths */
-    #example2 {
-        table-layout: fixed;
-        width: 100%;
-        margin: 0;
-    }
-
-    /* Equal column widths (10 columns = ~10% each) */
-    #example2 th,
-    #example2 td {
-        width: 10%;
-        text-align: center;
-        padding: 12px 8px;
-        vertical-align: middle;
-        word-wrap: break-word;
-    }
-
-    /* Sticky header */
-    #example2 thead th {
-        position: sticky;
-        top: 0;
-        background: #f8f9fa;
-        z-index: 10;
-        box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Scrollbar styling */
-    .table-responsive::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 4px;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8;
-    }
-
-    /* Form elements styling */
-    .status-dropdown {
-        width: 100%;
-        padding: 5px;
-        border-radius: 4px;
-        border: 1px solid #ced4da;
-    }
-
-    .remark-textarea {
-        width: 100%;
-        padding: 5px;
-        border-radius: 4px;
-        border: 1px solid #ced4da;
-        resize: vertical;
-    }
-
-    /* Button styling */
-    .table-responsive button {
-        padding: 5px 10px;
-        margin: 2px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    /* Update button */
-    .table-responsive button:nth-child(1) {
-        background-color: #4CAF50;
-        color: white;
-    }
-
-    /* Delete button */
-    .table-responsive button:nth-child(2) {
-        background-color: #f44336;
-        color: white;
-    }
-
-    /* Upload button */
-    .table-responsive button[type="submit"] {
-        background-color: #2196F3;
-        color: white;
-    }
-
-    /* File input styling */
-    .table-responsive input[type="file"] {
-        width: 100%;
-        margin-bottom: 5px;
-    }
-</style>
 
 <!--start page wrapper -->
 <div class="page-wrapper">
@@ -132,6 +33,7 @@ include 'layout/header.php';
                                 <th class="text-center">Application No</th>
                                 <th class="text-center">Apply Date</th>
                                 <th class="text-center">Name</th>
+                                <th class="text-center">Phone</th>
                                 <th class="text-center">Father Name</th>
                                 <th class="text-center">DOB</th>
                                 <th class="text-center">Status</th>
@@ -152,8 +54,10 @@ include 'layout/header.php';
                                         <td class="text-center"><?= $row['application_no'] ?></td>
                                         <td class="text-center"><?= date("Y-m-d", strtotime($row['created_at'])) ?></td>
                                         <td class="text-center"><?= $row['name'] ?></td>
+                                        <td class="text-center"><?= $row['phone'] ?></td>
                                         <td class="text-center"><?= $row['fName'] ?></td>
                                         <td class="text-center"><?= $row['dob'] ?></td>
+                                        <td class="text-center" style="display: none;"><?= $row['user_id'] ?></td>
 
                                         <td class="text-center">
                                             <select class="form-select form-select-sm status-dropdown" data-id="<?= $row['id'] ?>">
@@ -197,156 +101,7 @@ include 'layout/header.php';
 </div>
 <!--end page wrapper -->
 
-<!--start overlay-->
-<div class="overlay toggle-icon"></div>
-<!--end overlay-->
-<!--Start Back To Top Button--> <a href="javaScript:;" class="back-to-top"><i class='bx bxs-up-arrow-alt'></i></a>
-<!--End Back To Top Button-->
-<footer class="page-footer">
-    <p class="mb-0">Copyright © 2025. All right reserved. </p>
-</footer>
-</div>
-<!--end wrapper-->
-<!--start switcher-->
-<div class="switcher-wrapper">
-    <div class="switcher-btn"> <i class='bx bx-cog bx-spin'></i>
-    </div>
 
-    <div class="switcher-body">
-        <div class="d-flex align-items-center">
-            <h5 class="mb-0 text-uppercase">Theme Customizer</h5>
-            <button type="button" class="btn-close ms-auto close-switcher" aria-label="Close"></button>
-        </div>
-        <hr />
-        <h6 class="mb-0">Theme Styles</h6>
-        <hr />
-        <div class="d-flex align-items-center justify-content-between">
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="lightmode">
-                <label class="form-check-label" for="lightmode">Light</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="darkmode">
-                <label class="form-check-label" for="darkmode">Dark</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="semidark" checked>
-                <label class="form-check-label" for="semidark">Semi Dark</label>
-            </div>
-        </div>
-        <hr />
-        <div class="form-check">
-            <input class="form-check-input" type="radio" id="minimaltheme" name="flexRadioDefault">
-            <label class="form-check-label" for="minimaltheme">Minimal Theme</label>
-        </div>
-        <hr />
-        <h6 class="mb-0">Header Colors</h6>
-        <hr />
-        <div class="header-colors-indigators">
-            <div class="row row-cols-auto g-3">
-                <div class="col">
-                    <div class="indigator headercolor1" id="headercolor1"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor2" id="headercolor2"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor3" id="headercolor3"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor4" id="headercolor4"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor5" id="headercolor5"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor6" id="headercolor6"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor7" id="headercolor7"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor8" id="headercolor8"></div>
-                </div>
-            </div>
-        </div>
-        <hr />
-        <h6 class="mb-0">Sidebar Colors</h6>
-        <hr />
-        <div class="header-colors-indigators">
-            <div class="row row-cols-auto g-3">
-                <div class="col">
-                    <div class="indigator sidebarcolor1" id="sidebarcolor1"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor2" id="sidebarcolor2"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor3" id="sidebarcolor3"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor4" id="sidebarcolor4"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor5" id="sidebarcolor5"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor6" id="sidebarcolor6"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor7" id="sidebarcolor7"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor8" id="sidebarcolor8"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!--end switcher-->
-<!-- Bootstrap JS -->
-<script src="../assets/js/bootstrap.bundle.min.js"></script>
-<!--plugins-->
-<script src="../assets/js/jquery.min.js"></script>
-<script src="../assets/plugins/simplebar/js/simplebar.min.js"></script>
-<script src="../assets/plugins/metismenu/js/metisMenu.min.js"></script>
-<script src="../assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js"></script>
-<script src="../assets/plugins/chartjs/chart.min.js"></script>
-<script src="../assets/plugins/vectormap/jquery-jvectormap-2.0.2.min.js"></script>
-<script src="../assets/plugins/vectormap/jquery-jvectormap-world-mill-en.js"></script>
-<script src="../assets/plugins/jquery.easy-pie-chart/jquery.easypiechart.min.js"></script>
-<script src="../assets/plugins/sparkline-charts/jquery.sparkline.min.js"></script>
-<script src="../assets/plugins/jquery-knob/excanvas.js"></script>
-<script src="../assets/plugins/jquery-knob/jquery.knob.js"></script>
-<script>
-    $(function() {
-        $(".knob").knob();
-    });
-</script>
-<script src="../assets/js/index.js"></script>
-<!--app JS-->
-<script src="../assets/js/app.js"></script>
-<!-- datatable -->
-<script src="../template/ahkweb/assets/plugins/datatable/js/jquery.dataTables.min.js"></script>
-<script src="../template/ahkweb/assets/plugins/datatable/js/dataTables.bootstrap5.min.js"></script>
-<script>
-    $(document).ready(function() {
-        $('#example').DataTable();
-    });
-</script>
-
-<script>
-    $(document).ready(function() {
-        var table = $('#example2').DataTable({
-            lengthChange: false,
-            buttons: ['copy', 'excel', 'pdf', 'print']
-        });
-
-        table.buttons().container()
-            .appendTo('#example2_wrapper .col-md-6:eq(0)');
-    });
-</script>
-<!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
 
 <script>
     // jQuery AJAX Code (header में jQuery include करें)
@@ -355,22 +110,30 @@ include 'layout/header.php';
             var status = $(this).val();
             var id = $(this).data('id');
 
+            var row = $(this).closest('tr');
+
+            // Get the name and phone from appropriate td indexes
+            var name = row.find('td:eq(3)').text().trim(); // 0-based index: 3 => name
+            var phone = row.find('td:eq(4)').text().trim();
+            var user_id = row.find('td:eq(7)').text().trim();
+
+            var remark = row.find('.remark-textarea').val().trim();
+
+
+
             $.ajax({
                 url: 'update_status.php',
                 method: 'POST',
                 data: {
                     id: id,
-                    status: status
+                    status: status,
+                    name: name,
+                    phone: phone,
+                    remark: remark,
+                    user_id: user_id
                 },
                 success: function(response) {
-                    var result = JSON.parse(response);
-                    if (result.success) {
-                        // Optional: Show success message
-                        alert('Status updated successfully!');
-                        // location.reload();
-                    } else {
-                        alert('Error updating status!');
-                    }
+                    alert('Status updated successfully, Message sent!');
                 },
                 error: function() {
                     alert('Server error!');
@@ -403,14 +166,6 @@ include 'layout/header.php';
     });
 </script>
 
-
-
-
-
-
-
-</body>
-
-
-
-</html>
+<?php
+include 'layout/footer.php';
+?>

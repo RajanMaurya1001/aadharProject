@@ -8,6 +8,8 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['role'])) {
 if ($_SESSION['role'] !== '0' && $_SESSION['role'] !== 0) {
     die("Access Denied!");
 }
+
+$id = $_SESSION['id'];
 include('config.php');
 include 'layout/header.php';
 ?>
@@ -23,7 +25,7 @@ $chargeis = $serviceRow['service_charge'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $aadhar_no = $_POST['aadhar_no'];
     $name = $_POST['name'];
-    $fName = $_POST['fname'];
+    $fName = $_POST['fName'];
     $house_no = $_POST['house_no'];
     $locality  = $_POST['locality'];
     $post_office = $_POST['post_office'];
@@ -34,24 +36,136 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $birth_address = $_POST['birth_address'];
     $gender = $_POST['gender'];
     $address = $_POST['address'];
+    $phone = $_POST['phone'];
     $language = $_POST['language'];
     $name_local_language  = $_POST['name_local_language'];
     $address_local_language = $_POST['address_local_language'];
+    $gender_local  = $_POST['gender_local'];
 
     $filename = time() . $_FILES['image']['name'];
     $tempname = $_FILES['image']['tmp_name'];
     move_uploaded_file($tempname, '../assets/upload/' . $filename);
 
-    $sql = "INSERT INTO aadhar(aadhar_no, name, fname, house_no, locality, post_office, state, city, pin_code, dob, birth_address,gender, address, image, language, name_local_language, address_local_language, user_id)
+    $sql = "INSERT INTO aadhar(aadhar_no, name, fName, house_no, locality, post_office, state, city, pin_code, dob, birth_address,gender, address, phone, image, language, name_local_language, address_local_language, user_id, gender_local)
     values('$aadhar_no', '$name', '$fName', '$house_no', '$locality', '$post_office', '$state', '$city', '$pin_code', 
-    '$dob', '$birth_address', '$gender', '$address', '$filename', '$language', '$name_local_language', '$address_local_language', '$id')";
+    '$dob', '$birth_address', '$gender', '$address', '$phone', '$filename', '$language', '$name_local_language', '$address_local_language', '$id' , '$gender_local')";
 
     if (mysqli_query($conn, $sql)) {
+
+        // Step 1: Check Wallet Balance
+        $checkWalletQuery = "SELECT wallet_balence FROM total_wallet_balence WHERE user_id = $id";
+        $checkWalletResult = mysqli_query($conn, $checkWalletQuery);
+
+        if ($checkWalletResult && mysqli_num_rows($checkWalletResult) > 0) {
+            $row = mysqli_fetch_assoc($checkWalletResult);
+            $walletBalence = (float)$row['wallet_balence'];
+
+            if ($walletBalence <= 0) {
+                echo "<script>
+                 alert('Insufficient balance. Please add money first.');
+                 window.location.href = 'aadharmanual.php';
+                </script>";
+                exit;
+            }
+        } else {
+            echo "<script>
+                 alert('Wallet not found.');
+                </script>";
+            exit;
+        }
+
+
+
         $minusWalletUser = "UPDATE total_wallet_balence SET wallet_balence = wallet_balence - '$chargeis' WHERE user_id = $id";
         if (mysqli_query($conn, $minusWalletUser)) {
-            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis' WHERE user_id = 1";
+
+            // Wallet History Insert Code
+            $purpose = 'Aadhar';
+            $type = 'debit';
+            $status = 1;
+            // $transaction_id = 'TXN' . rand(10000, 99999);
+
+            $getNewBal = mysqli_query($conn, "SELECT wallet_balence FROM total_wallet_balence WHERE user_id = $id");
+            $newBalRow = mysqli_fetch_assoc($getNewBal);
+            $new_balance = $newBalRow['wallet_balence'];
+
+            $insertLog = "INSERT INTO wallet_transaction_history 
+             (user_id, amount, available_balance, purpose, type, status)
+             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status)";
+            mysqli_query($conn, $insertLog);
+
+
+            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis' WHERE user_id = $id";
             if (mysqli_query($conn, $minusWalletAdmin)) {
-                echo "<script>alert('Aadhar applied'); window.location.href='index.php';</script>";
+                // Green API Details
+                $idInstance = "7105245150";
+                $apiToken = "5930752ee220440da365847180fbf93eba31bf1fe50947f4a2";
+                $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+                // -----------------------------
+                // ✅ 1. Message to Applicant
+                // -----------------------------
+                $applicantNumber = "91" . $phone . "@c.us";
+                $messageToUser = "Hello $name, your application for the Aadhar has been submitted successfully. Thank you!";
+
+                $dataUser = [
+                    "chatId" => $applicantNumber,
+                    "message" => $messageToUser
+                ];
+
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                $response1 = curl_exec($ch);
+                curl_close($ch);
+
+
+                // -----------------------------
+                // ✅ 2. Message to Admin
+                // -----------------------------
+                $adminNumber = "918303293043@c.us";
+                $messageToAdmin =
+                    "Aadhar Application Received:\n\n" .
+                    "Name: $name\n" .
+                    "Father's Name: $fName\n" .
+                    "Phone: $phone\n" .
+                    "DOB: $dob\n" .
+                    "Gender: $gender\n" .
+                    "House No: $house_no\n" .
+                    "Locality: $locality\n" .
+                    "Post Office: $post_office\n" .
+                    "City: $city\n" .
+                    "State: $state\n" .
+                    "Pin Code: $pin_code\n" .
+                    "Full Address: $address\n" .
+                    "Birth Place Address: $birth_address\n" .
+                    "Language: $language\n" .
+                    "Name (Local Language): $name_local_language\n" .
+                    "Address (Local Language): $address_local_language\n" .
+                    "Aadhaar No: $aadhar_no\n" .
+                    "Registration Fee: ₹$chargeis\n";
+
+                $dataAdmin = [
+                    "chatId" => $adminNumber,
+                    "message" => $messageToAdmin
+                ];
+
+                $ch2 = curl_init($url);
+                curl_setopt($ch2, CURLOPT_POST, 1);
+                curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($dataAdmin));
+                curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                $response2 = curl_exec($ch2);
+                curl_close($ch2);
+
+
+                echo "
+        <script>
+            alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+        </script>
+    ";
             } else {
                 echo "Error updating admin_wallet: " . mysqli_error($conn);
             }
@@ -112,7 +226,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </h5>
                         </div>
                         <hr>
-
                         <form method="post" autocomplete="off" onSubmit="return validation();" enctype="multipart/form-data" action="" style="width:100%">
                             <div class="row dgnform">
                                 <div class="col-sm-9">
@@ -120,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <div class="col-sm-4">
                                             <label>Aadhar Card No.</label>
                                             <div class="form-group">
-                                                <input class="form-control" id="aadhar_no" placeholder="Aadharcard No..." autocomplete="off" name="aadhar_no" type="number" maxlength="12" required value="">
+                                                <input class="form-control " value="" id="aadharno" placeholder="Aadharcard No..." autocomplete="off" name="aadhar_no" type="text" maxlength="12" required value="">
                                                 <span id="erroraadharno" class="error"></span>
                                             </div>
                                         </div>
@@ -134,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <label>Father Name </label>
                                             <div class="form-group">
 
-                                                <input class="form-control" name="fName" id="fName" placeholder="Example : Shyam Singh" Value="" type="text" value="" oninput="setaddress()">
+                                                <input class="form-control" name="fName" id="fathername" placeholder="Example : Shyam Singh" Value="" type="text" value="" oninput="setaddress()">
                                             </div>
                                         </div>
 
@@ -144,15 +257,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <div class="row">
                                         <div class="col-md-4">
                                             <label>House No</label>
-                                            <input class="form-control" name="house_no" id="house_no" type="number" oninput="setaddress()" required="" placeholder="House No">
+                                            <input class="form-control" name="house_no" id="houseno" type="text" oninput="setaddress()" required="" placeholder="House No">
                                         </div>
                                         <div class="col-md-4">
                                             <label>Gali,Locality</label>
-                                            <input class="form-control" name="locality" id="locality" oninput="setaddress()" type="text" required="" placeholder="Gali, Locality, Panchayat">
+                                            <input class="form-control" name="locality" id="streetlocality" oninput="setaddress()" type="text" required="" placeholder="Gali, Locality, Panchayat">
                                         </div>
                                         <div class="col-md-4">
                                             <label>Post Office</label>
-                                            <input class="form-control" name="post_office" id="post_office" type="text" oninput="setaddress()" required="" placeholder="Post Office">
+                                            <input class="form-control" name="post_office" id="vtcandpost" type="text" oninput="setaddress()" required="" placeholder="Post Office">
                                         </div>
                                         <div class="col-md-4">
                                             <label>State</label>
@@ -164,15 +277,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         </div>
                                         <div class="col-md-4">
                                             <label>Pin code</label>
-                                            <input class="form-control" name="pin_code" id="pincode" type="number" maxlength="7" oninput="setaddress()" required="" placeholder="pincode">
+                                            <input class="form-control" name="pin_code" id="pincode" type="text" maxlength="7" oninput="setaddress()" required="" placeholder="pincode">
                                         </div>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-sm-4">
                                             <label>Date Of Birth</label>
-                                            <div class="form-group">
-                                                <input class="form-control" name="dob" type="text" required placeholder="D.O.B.(dd/MM/yyyy)" value="">
+                                            <div class="form-group" name="dob">
+                                                <input class="form-control " name="dob" type="text" value="26/07/1992" required placeholder="D.O.B.(dd/MM/yyyy)" value="">
+                                                <input class="form-control " name="houseno" type="hidden" value="">
+                                                <input class="form-control " name="street" type="hidden" value="">
+                                                <input class="form-control " name="pincode" type="hidden" value="">
+                                                <input class="form-control " name="vtcandpost" type="hidden" value="">
+                                                <input class="form-control " name="dist" type="hidden" value="">
+                                                <input class="form-control " name="statename" type="hidden" value="">
+                                                <input class="form-control " id="birthtithi" name="birthtithi" type="hidden" value="Birth Tithi">
                                             </div>
                                         </div>
                                         <div class="col-sm-4">
@@ -187,9 +307,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                     <option value="">GENDER</option>
                                                     <option value="Male" name="gender" id="gender">Male</option>
                                                     <option value="Female" name="gender" id="gender">Female</option>
-                                                </select><br>
+                                                </select>
                                             </div>
                                         </div>
+                                        <div class="col-sm-4">
+                                            <label>Gender Local</label>
+                                            <input class="form-control " id="genderlocal" name="gender_local" type="text" value="">
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <label>Phone Number</label>
+                                            <input class="form-control " id="genderlocal" name="phone" type="text" value="">
+                                        </div>
+
 
                                         <input class="form-control " id="pata" name="pata" readonly="readonly" type="hidden" value="address">
                                         <input class="form-control " id="patalocal" name="patalocal" readonly="readonly" type="hidden" value="">
@@ -206,7 +335,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="col-sm-3">
                                     <label>Select Image </label>
                                     <div class="form-group">
-                                        <input type="file" name="image" class="form-control" id="image" accept="image/x-png,image/jpg,image/jpeg" required />
+                                        <input type="file" name="image" class="form-control" id="imgInp" accept="image/x-png,image/jpg,image/jpeg" required />
                                         <img src="" id="blah" width="100px" height="100px" style="display: none;">
                                     </div>
                                 </div>
@@ -217,16 +346,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <div class="form-group">
                                                 <select class="form-control" onchange="changelang()" name="language" id="language" required>
                                                     <option value="">SELECT </option>
-                                                    <option value="hindi">Hindi </option>
-                                                    <option value="punjabi">Punjabi </option>
-                                                    <option value="gujarati">Gujarati</option>
-                                                    <option value="marathi">Marathi </option>
-                                                    <option value="tamil">Tamil </option>
-                                                    <option value="kannada">Kannada </option>
-                                                    <option value="bengali">Bengali </option>
-                                                    <option value="telgu">Telugu </option>
-                                                    <option value="oriya">Oriya </option>
-                                                    <option value="sindhi">Sindhi </option>
+                                                    <option value="HI">Hindi </option>
+                                                    <option value="PA">Punjabi </option>
+                                                    <option value="GU">Gujarati</option>
+                                                    <option value="MR">Marathi </option>
+                                                    <option value="TA">Tamil </option>
+                                                    <option value="KN">Kannada </option>
+                                                    <option value="BN">Bengali </option>
+                                                    <option value="TE">Telugu </option>
+                                                    <option value="OR">Oriya </option>
+                                                    <option value="SD">Sindhi </option>
                                                 </select>
                                                 <span id="errorlanguage" class="error"></span>
                                             </div>
@@ -246,15 +375,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             </div>
                                         </div>
                                     </div>
-                                    <?php
-                                    $fee_sql = "SELECT * from services where service_name = 'Aadhar'";
-                                    $fee_data = mysqli_query($conn, $fee_sql);
-                                    if (mysqli_num_rows($fee_data) > 0) {
-                                        $row = mysqli_fetch_assoc($fee_data);
-                                    }
-                                    ?>
                                     <div class="col-12 ml-2">
-                                        <h5 class="text-warning ">Application Fee: ₹<?= $row['service_charge'] ?></h5>
+                                        <h5 class="text-warning ">Application Fee: ₹5</h5>
 
                                     </div>
                                     <div class="col-sm-3">
@@ -271,6 +393,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <div class="form-group">
                                             <a href="https://www.google.com/intl/sa/inputtools/try/" target="_blank" type="button" name="button" class="btn btn-primary btn-block">Open Google Input Tools</a>
                                         </div>
+
+
                                     </div>
                                 </div>
                             </div>
@@ -290,7 +414,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script type="text/javascript">
         function validation() {
 
-
+            /*	var aadharno = document.getElementById('aadharno').value;
+            	if ( aadharno.length < 12 ) {
+            		 document.getElementById('erroraadharno').innerHTML = " **Please Enter 12 Digit Aadhaar Card Number !!!";
+            		 document.getElementById('aadharno').style.border = "1px solid red";
+            		 document.getElementById('aadharno').focus();
+            		 return false;
+            	}*/
 
             var txtSource = document.getElementById('txtSource').value;
             if (txtSource.trim() == "") {

@@ -56,11 +56,21 @@ include 'layout/header.php';
                                         <td class="text-center "><?= $row['status'] ?></td>
                                         <td class="text-center"><?= $row['remark'] ?></td>
 
-                                        <td class="text-center">
+                                        <!-- <td class="text-center">
                                             <a
                                                 style="margin-top:2px;margin-bottom:2px;padding-top:2px;padding-bottom:2px;"
                                                 class="btn btn-success"
                                                 href="birthDownload.php?file=<?= htmlspecialchars($row['certificate_file']) ?>"
+                                                target="_blank">
+                                                Print
+                                            </a>
+                                        </td> -->
+
+                                        <td class="text-center">
+                                            <a
+                                                style="margin-top:2px;margin-bottom:2px;padding-top:2px;padding-bottom:2px;"
+                                                class="btn btn-success"
+                                                href="aadhardownload.php?file=<?= $row['user_id'] ?>"
                                                 target="_blank">
                                                 Print
                                             </a>

@@ -130,70 +130,126 @@
 </head>
 
 
-<?php
-include('../psprint/assets/config/config.php');
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = $_POST['name'];
-    $email = $_POST['email'];
-    $phone = $_POST['phone'];
-    $password = $_POST['password'];
 
-
-    $sql = "Insert Into user(name, email, phone, password) values('$name', '$email', '$phone', '$password')";
-    if (mysqli_query($conn, $sql)) {
-        echo "<script>
-        alert('User Registerd Succesfully');
-        window.location.href = 'login.php';
-        </script>";
-    } else {
-        echo "<script>
-        alert('User Registerd Not Succesfully');
-        window.location.href = 'registration.php';
-        </script>";
-    }
-}
-
-?>
 
 <body>
     <div class="container">
         <h1>Register Hear</h1>
 
-        <form id="registrationForm" method="post" action="">
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" name="name" placeholder="Enter your full name" required>
+        <!-- <form id="registrationForm" method="post" action=""> -->
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="name" placeholder="Enter your full name" id="name" required>
+        </div>
+
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="Enter your email" id="email" required>
+        </div>
+
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" name="phone" placeholder="Enter your phone number" id="phone" required>
+        </div>
+
+        <div class="form-group">
+            <label>Enter State</label>
+            <input type="text" name="state" placeholder="Enter your phone number" id="state" required>
+        </div>
+
+        <div class="form-group">
+            <label>Enter District</label>
+            <input type="text" name="district" placeholder="Enter your phone number" id="district" required>
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <div class="password-container">
+                <input type="password" name="password" placeholder="Create password" id="password" required>
+                <!-- <span class="toggle-password">👁️</span> -->
             </div>
+        </div>
 
-            <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" name="email" placeholder="Enter your email" required>
-            </div>
+        <?php
+        include('../psprint/assets/config/config.php');
+        $data = mysqli_query($conn, "select * from services ORDER BY id DESC LIMIT 1");
+        if (mysqli_num_rows($data) > 0) {
+            $row = mysqli_fetch_assoc($data);
+        }
+        ?>
+        <div class="form-group">
+            <label>Memebership Amount</label>
+            <input type="number" name="membership_amount" value="<?= $row['service_charge'] ?>" id="charge" readonly>
+        </div>
 
-            <div class="form-group">
-                <label>Phone Number</label>
-                <input type="tel" name="phone" placeholder="Enter your phone number" required>
-            </div>
-
-            <div class="form-group">
-                <label>Password</label>
-                <div class="password-container">
-                    <input type="password" name="password" placeholder="Create password" required>
-                    <!-- <span class="toggle-password">👁️</span> -->
-                </div>
-            </div>
-
-            <!-- <div class="terms">
-                By clicking Sign Up, you agree to our <a href="#">Terms</a>,
-                <a href="#">Privacy Policy</a> and <a href="#">Cookie Policy</a>.
-            </div> -->
-
-            <button type="submit">Sign Up</button>
-        </form>
+        <button type="button" id="member_amount">Sign Up</button>
+        <!-- </form> -->
 
         <div class="login-link">
             Already have an account? <a href="login.php">Log In</a>
         </div>
+
+        <!-- patyment gateway included -->
+        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+        <script>
+            document.querySelector("#member_amount").addEventListener("click", function() {
+                // let mobile = '';
+                // let amount = document.querySelector("#amount").value;
+                let name = document.querySelector("#name").value;
+                let email = document.querySelector("#email").value;
+                let phone = document.querySelector("#phone").value;
+                let state = document.querySelector("#state").value;
+                let district = document.querySelector("#district").value;
+                let password = document.querySelector("#password").value;
+                let charge = document.querySelector("#charge").value;
+
+                if (!name || !email || !phone || !state || !district || !password || !charge) {
+                    alert("All field is required");
+                    return;
+                }
+
+                // send the data in gateway
+                let totalAmount = parseFloat(charge) * 100;
+
+                let options = {
+                    "key": "rzp_live_t6gVKS9RuNQJUO", //your rozarpay key 
+                    "amount": totalAmount,
+                    "currency": "INR",
+                    "name": "PS-PRINT",
+                    "description": "Payment for Membership balence",
+                    "handler": function(response) {
+                        alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
+
+                        // Redirect to process_payment.php with all required data
+                        let wallet_data = new URLSearchParams({
+                            transaction_id: response.razorpay_payment_id,
+                            name: name,
+                            email: email,
+                            phone: phone,
+                            state: state,
+                            district: district,
+                            password: password,
+                            charge: charge,
+                            payment_status: "Success"
+                        }).toString();
+
+
+                        window.location.href = `insert_register_data.php?${wallet_data}`;
+                    },
+                    "prefill": {
+                        "name": name,
+                        // "email": email,
+                        "contact": phone
+                    },
+                    "theme": {
+                        "color": "#3399cc"
+                    }
+                };
+
+                let rzp1 = new Razorpay(options);
+                rzp1.open();
+            })
+        </script>
     </div>
 </body>
 

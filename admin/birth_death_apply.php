@@ -28,6 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $mName = $_POST['mName'];
     $mAadhar = $_POST['mAadhar'];
     $address = $_POST['address'];
+    $phone = $_POST['phone'];
     $status = 'pending';
 
     $currentYear = date('Y');
@@ -44,23 +45,81 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $application_no = $prefix . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
 
 
-    $sql = "INSERT INTO birth_certificate(certificate, state, district, name, aadhar_number, gender, dob, fName, fAadhar, mName, mAadhar, address, application_no, status) 
-     VALUES('$certificate', '$state', '$district', '$name', '$aadhar_number', '$gender', '$dob', '$fName', '$fAadhar', '$mName', '$mAadhar', '$address', '$application_no','$status')";
+    $sql = "INSERT INTO birth_certificate(certificate, state, district, name, aadhar_number, gender, dob, fName, fAadhar, mName, mAadhar, address, phone, application_no, status) 
+     VALUES('$certificate', '$state', '$district', '$name', '$aadhar_number', '$gender', '$dob', '$fName', '$fAadhar', '$mName', '$mAadhar', '$address', '$phone', '$application_no','$status')";
 
     if (mysqli_query($conn, $sql)) {
-        echo "<script>
-    alert('Data Inserted Successfully');
-    window.location.href= 'birth_death_apply.php';
-    </script>";
+        // Green API Details
+        $idInstance = "7105242669";
+        $apiToken = "dfb24b0b4e784ed4814e3a780e2ea43d01b49830e9a94562b2";
+        $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+        // -----------------------------
+        // ✅ 1. Message to Applicant
+        // -----------------------------
+        $applicantNumber = "91" . $phone . "@c.us";
+        $messageToUser = "Hello $name, your application for the Birth Cirtificate has been submitted successfully. Thank you!";
+
+        $dataUser = [
+            "chatId" => $applicantNumber,
+            "message" => $messageToUser
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response1 = curl_exec($ch);
+        curl_close($ch);
+
+
+        // -----------------------------
+        // ✅ 2. Message to Admin
+        // -----------------------------
+        $adminNumber = "918303293043@c.us";
+        $messageToAdmin =
+            "Birth Cirtificate Application Received:\n\n" .
+            $message = "Certificate Application Received:\n\n" .
+            "Certificate Type: $certificate\n" .
+            "Name: $name\n" .
+            "Father's Name: $fName\n" .
+            "Father's Aadhaar: $fAadhar\n" .
+            "Mother's Name: $mName\n" .
+            "Mother's Aadhaar: $mAadhar\n" .
+            "Gender: $gender\n" .
+            "DOB: $dob\n" .
+            "Phone: $phone\n" .
+            "Aadhaar No: $aadhar_number\n" .
+            "Address: $address\n" .
+            "District: $district\n" .
+            "State: $state\n" .
+            "Application Status: $status\n";
+
+
+        $dataAdmin = [
+            "chatId" => $adminNumber,
+            "message" => $messageToAdmin
+        ];
+
+        $ch2 = curl_init($url);
+        curl_setopt($ch2, CURLOPT_POST, 1);
+        curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($dataAdmin));
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response2 = curl_exec($ch2);
+        curl_close($ch2);
+
+
+        echo "
+        <script>
+            alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+        </script>
+    ";
     }
 }
 
-
 ?>
-
-
-
-
 
 <!--start page wrapper -->
 <div class="page-wrapper">
@@ -166,6 +225,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             <label for="applicant_aadhar">आधार नंबर / ADHAR NUMBER*</label>
                             <input type="text" oninput="this.value = this.value.toUpperCase()" name="aadhar_number" class="form-control" required><br>
+                            <label>PHONE NUMBER*</label>
+                            <input type="number" name="phone" class="form-control" required><br>
 
                             <label for="gender">लिंग / Gender*</label>
                             <select name="gender" class="form-control" required>
@@ -203,12 +264,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 }
                                 ?>
                                 <h5 class="text-warning">Application Fee: ₹<?= $row['service_charge'] ?></h5>
-
-
                                 <h5 class="text-warning"> DOB -> 2024 to 2025 Data Not Allow</h5>
-
-
-
                                 <input type="hidden" name="fee" value="250">
                             </div>
                             <div class="col-12">
@@ -223,146 +279,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     </div>
 </div>
-
-
-<script>
-    const certificateSelect = document.getElementById("certificate_type");
-    const dateOfBirthLabel = document.getElementById("date_of_birth_label");
-    const dateOfBirthInput = document.getElementById("date_of_birth");
-
-    certificateSelect.addEventListener("change", function() {
-        if (this.value === "birthcertificate") {
-            dateOfBirthLabel.textContent = "Date of Birth:";
-            dateOfBirthInput.setAttribute("required", "");
-        } else if (this.value === "deathcertificate") {
-            dateOfBirthLabel.textContent = "Date of Death:";
-            dateOfBirthInput.removeAttribute("required");
-        }
-    });
-</script>
-
-
-<!--end page wrapper -->
-
-<!--start overlay-->
-<div class="overlay toggle-icon"></div>
-<!--end overlay-->
-<!--Start Back To Top Button--> <a href="javaScript:;" class="back-to-top"><i class='bx bxs-up-arrow-alt'></i></a>
-<!--End Back To Top Button-->
-<footer class="page-footer">
-    <p class="mb-0">Copyright © 2025. All right reserved. </p>
-</footer>
-</div>
-<!--end wrapper-->
-<!--start switcher-->
-<div class="switcher-wrapper">
-    <div class="switcher-btn"> <i class='bx bx-cog bx-spin'></i>
-    </div>
-
-    <div class="switcher-body">
-        <div class="d-flex align-items-center">
-            <h5 class="mb-0 text-uppercase">Theme Customizer</h5>
-            <button type="button" class="btn-close ms-auto close-switcher" aria-label="Close"></button>
-        </div>
-        <hr />
-        <h6 class="mb-0">Theme Styles</h6>
-        <hr />
-        <div class="d-flex align-items-center justify-content-between">
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="lightmode">
-                <label class="form-check-label" for="lightmode">Light</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="darkmode">
-                <label class="form-check-label" for="darkmode">Dark</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="semidark" checked>
-                <label class="form-check-label" for="semidark">Semi Dark</label>
-            </div>
-        </div>
-        <hr />
-        <div class="form-check">
-            <input class="form-check-input" type="radio" id="minimaltheme" name="flexRadioDefault">
-            <label class="form-check-label" for="minimaltheme">Minimal Theme</label>
-        </div>
-        <hr />
-        <h6 class="mb-0">Header Colors</h6>
-        <hr />
-        <div class="header-colors-indigators">
-            <div class="row row-cols-auto g-3">
-                <div class="col">
-                    <div class="indigator headercolor1" id="headercolor1"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor2" id="headercolor2"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor3" id="headercolor3"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor4" id="headercolor4"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor5" id="headercolor5"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor6" id="headercolor6"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor7" id="headercolor7"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor8" id="headercolor8"></div>
-                </div>
-            </div>
-        </div>
-        <hr />
-        <h6 class="mb-0">Sidebar Colors</h6>
-        <hr />
-        <div class="header-colors-indigators">
-            <div class="row row-cols-auto g-3">
-                <div class="col">
-                    <div class="indigator sidebarcolor1" id="sidebarcolor1"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor2" id="sidebarcolor2"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor3" id="sidebarcolor3"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor4" id="sidebarcolor4"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor5" id="sidebarcolor5"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor6" id="sidebarcolor6"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor7" id="sidebarcolor7"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor8" id="sidebarcolor8"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!--end switcher-->
-<!-- Bootstrap JS -->
-
-
-<script src="../assets/js/bootstrap.bundle.min.js"></script>
-<!--plugins-->
-<script src="../assets/js/jquery.min.js"></script>
-<script src="../assets/plugins/simplebar/js/simplebar.min.js"></script>
-<script src="../assets/plugins/metismenu/js/metisMenu.min.js"></script>
-<script src="../assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js"></script>
-<!--app JS-->
-<script src="../assets/js/app.js"></script>
-
 
 //for select state wise district
 <script>
@@ -395,34 +311,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     });
 </script>
-</body>
 
-<script>
-    $(document).ready(function() {
-
-        $('#eid').inputmask();
-        $('#date').inputmask();
-        $('#timea').inputmask("hh:mm:ss", {
-            placeholder: "00:00:00",
-            insertMode: false,
-            showMaskOnHover: false,
-            // hourFormat: 24
-        });
-    });
-</script>
-
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
-<script>
-    flatpickr("#date_of_birth", {
-        dateFormat: "d-m-Y", // Format: 01-01-2001
-        maxDate: "today" // Optional: restrict to past dates only
-    });
-</script>
-
-
-
-
-</html>
+<?php
+include('layout/footer.php');
+?>

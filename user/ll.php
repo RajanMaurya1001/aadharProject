@@ -20,26 +20,126 @@ $getServices = "Select * from services where service_name = 'Learning licence'";
 $serviceData = mysqli_query($conn, $getServices);
 if (mysqli_num_rows($serviceData) > 0) {
     $serviceRow = mysqli_fetch_assoc($serviceData);
+    $chargeis = $serviceRow['service_charge'];
 }
-$chargeis = $serviceRow['service_charge'];
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $state = $_POST['state'];
     $district = $_POST['district'];
     $application_no = trim($_POST['application_no']);
+    $phone = $_POST['phone'];
     $dob = trim($_POST['dob']);
     $password = trim($_POST['password']);
 
-    $sql = "INSERT INTO licence (state, district, application_no, dob, password, user_id)
-            VALUES ('$state', '$district', '$application_no', '$dob', '$password', '$id')";
+    $sql = "INSERT INTO licence (state, district, application_no, phone, dob, password, user_id)
+            VALUES ('$state', '$district', '$application_no', '$dob', '$phone','$password', '$id')";
 
 
 
     if (mysqli_query($conn, $sql)) {
+
+        // Step 1: Check Wallet Balance
+        $checkWalletQuery = "SELECT wallet_balence FROM total_wallet_balence WHERE user_id = $id";
+        $checkWalletResult = mysqli_query($conn, $checkWalletQuery);
+
+        if ($checkWalletResult && mysqli_num_rows($checkWalletResult) > 0) {
+            $row = mysqli_fetch_assoc($checkWalletResult);
+            $walletBalence = (float)$row['wallet_balence'];
+
+            if ($walletBalence <= 0) {
+                echo "<script>
+                 alert('Insufficient balance. Please add money first.');
+                 window.location.href = 'll.php';
+                </script>";
+                exit;
+            }
+        } else {
+            echo "<script>
+                 alert('Wallet not found.');
+                </script>";
+            exit;
+        }
+
+
         $minusWalletUser = "UPDATE total_wallet_balence SET wallet_balence = wallet_balence - '$chargeis' WHERE user_id = $id";
         if (mysqli_query($conn, $minusWalletUser)) {
+
+            // Wallet History Insert Code
+            $purpose = 'Learning Licenece';
+            $type = 'debit';
+            $status = 1;
+            // $transaction_id = 'TXN' . rand(10000, 99999);
+
+            $getNewBal = mysqli_query($conn, "SELECT wallet_balence FROM total_wallet_balence WHERE user_id = $id");
+            $newBalRow = mysqli_fetch_assoc($getNewBal);
+            $new_balance = $newBalRow['wallet_balence'];
+
+            $insertLog = "INSERT INTO wallet_transaction_history 
+             (user_id, amount, available_balance, purpose, type, status)
+             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status)";
+            mysqli_query($conn, $insertLog);
+
+
+
             $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis' WHERE user_id = 1";
             if (mysqli_query($conn, $minusWalletAdmin)) {
-                echo "<script>alert('Learning Licence applied'); window.location.href='index.php';</script>";
+                // Green API Details
+                $idInstance = "7105242669";
+                $apiToken = "dfb24b0b4e784ed4814e3a780e2ea43d01b49830e9a94562b2";
+                $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+                // -----------------------------
+                // ✅ 1. Message to Applicant
+                // -----------------------------
+                $applicantNumber = "91" . $phone . "@c.us";
+                $messageToUser = "Hello $name, your application for the Learning Licence has been submitted successfully. Thank you!";
+
+                $dataUser = [
+                    "chatId" => $applicantNumber,
+                    "message" => $messageToUser
+                ];
+
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                $response1 = curl_exec($ch);
+                curl_close($ch);
+
+
+                // -----------------------------
+                // ✅ 2. Message to Admin
+                // -----------------------------
+                $adminNumber = "918303293043@c.us";
+                $messageToAdmin =
+                    "Learning Licence Application Received:\n\n" .
+                    "Application No: $application_no\n" .
+                    "Phone: $phone\n" .
+                    "DOB: $dob\n" .
+                    "State: $state\n" .
+                    "District: $district\n" .
+                    "Registration Fee: ₹$chargeis\n";
+
+                $dataAdmin = [
+                    "chatId" => $adminNumber,
+                    "message" => $messageToAdmin
+                ];
+
+                $ch2 = curl_init($url);
+                curl_setopt($ch2, CURLOPT_POST, 1);
+                curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($dataAdmin));
+                curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                $response2 = curl_exec($ch2);
+                curl_close($ch2);
+
+
+                echo "
+        <script>
+            alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+        </script>
+    ";
             } else {
                 echo "Error updating admin_wallet: " . mysqli_error($conn);
             }
@@ -179,13 +279,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <div class="card-body">
                                                 <div class="col-md-12">
                                                     <div class="form-group">
+                                                        <label class="card-title" for="phone">Phone</label>
+                                                        <input type="text" class="form-control" name="phone">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="col-md-12">
+                                                    <div class="form-group">
                                                         <label class="card-title" for="rc_dl">Enter Password</label>
                                                         <input type="text" class="form-control" name="password" placeholder="Password" required>
                                                     </div>
                                                 </div>
                                             </div>
                                             <?php
-                                            $fee_sql = "SELECT * from services where service_name = 'Learning licence'";
+                                            $fee_sql = "SELECT * from services where service_name = 'Learning_ licence'";
                                             $fee_data = mysqli_query($conn, $fee_sql);
                                             if (mysqli_num_rows($fee_data) > 0) {
                                                 $row = mysqli_fetch_assoc($fee_data);

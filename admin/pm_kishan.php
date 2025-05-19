@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $reg_no = $_POST['reg_no'];
     $aadhar_no = $_POST['aadhar_no'];
     $name = $_POST['name'];
+    $phone = $_POST['phone'];
     $status = 'pending';
 
 
@@ -38,18 +39,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $newNumber = $lastNumber + 1;
     $application_no = $prefix . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
 
-    $sql = "Insert into pm_kissan(state, district, reg_no, aadhar_no, name, status, application_no) values('$state', '$district', '$reg_no', '$aadhar_no', '$name', '$status', '$application_no')";
+    $sql = "Insert into pm_kissan(state, district, reg_no, aadhar_no, name, phone, status, application_no) values('$state', '$district', '$reg_no', '$aadhar_no', '$name', '$phone', '$status', '$application_no')";
     if (mysqli_query($conn, $sql)) {
-        echo "<script>
-        alert('Data Inserted Successfully');
-         window.location.href= 'pm_kishan.php';
-        </script>";
+        // Green API Details
+        $idInstance = "7105242669";
+        $apiToken = "dfb24b0b4e784ed4814e3a780e2ea43d01b49830e9a94562b2";
+        $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+        // -----------------------------
+        // ✅ 1. Message to Applicant
+        // -----------------------------
+        $applicantNumber = "91" . $phone . "@c.us";
+        $messageToUser = "Hello $name, your application for the Pm Kishan has been submitted successfully. Thank you!";
+
+        $dataUser = [
+            "chatId" => $applicantNumber,
+            "message" => $messageToUser
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response1 = curl_exec($ch);
+        curl_close($ch);
+
+
+        // -----------------------------
+        // ✅ 2. Message to Admin
+        // -----------------------------
+        $adminNumber = "918303293043@c.us";
+        $messageToAdmin =
+            "Pm Kishan Application Received:\n\n" .
+            "Registration No: $reg_no\n" .
+            "Name: $name\n" .
+            "phone: $phone\n" .
+            "State: $state\n" .
+            "District: $district\n" .
+            "Aadhaar No: $aadhar_no\n" .
+            "Application Status: $status\n";
+
+        $dataAdmin = [
+            "chatId" => $adminNumber,
+            "message" => $messageToAdmin
+        ];
+
+        $ch2 = curl_init($url);
+        curl_setopt($ch2, CURLOPT_POST, 1);
+        curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($dataAdmin));
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response2 = curl_exec($ch2);
+        curl_close($ch2);
+
+
+        echo "
+        <script>
+            alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+        </script>
+    ";
     }
 }
 ?>
-
-
-
 
 <!--start page wrapper -->
 <div class="page-wrapper">
@@ -138,8 +190,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="card-body">
+                                                <div class="col-md-12">
+                                                    <div class="form-group">
+                                                        <label class="card-title" for="Phone">Phone Number</label>
+                                                        <input type="text" required="" class="form-control" name="Phone" id="Phone">
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <?php
-                                            $fee_sql = "SELECT * from services where service_name = 'PM kishan seading'";
+                                            $fee_sql = "SELECT * from services where service_name = 'pm_kissan_seeding'";
                                             $fee_data = mysqli_query($conn, $fee_sql);
                                             if (mysqli_num_rows($fee_data) > 0) {
                                                 $row = mysqli_fetch_assoc($fee_data);
@@ -165,196 +225,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
         </div>
+
+        //for select state wise district
         <script>
-            function removeSpaces(inputElement) {
-                inputElement.value = inputElement.value.replace(/\s/g, '');
-            }
+            // JavaScript AJAX Code
+            document.getElementById('state').addEventListener('change', function() {
+                var state = this.value;
+                var districtDropdown = document.getElementById('district');
+
+                if (state) {
+                    // AJAX Request
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "get_districts.php", true);
+                    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+                    xhr.onload = function() {
+                        if (this.status == 200) {
+                            var districts = JSON.parse(this.responseText);
+                            districtDropdown.innerHTML = '<option value="">Select district</option>';
+
+                            districts.forEach(function(district) {
+                                var option = document.createElement('option');
+                                option.value = district.value;
+                                option.textContent = district.text;
+                                districtDropdown.appendChild(option);
+                            });
+                        }
+                    }
+
+                    xhr.send("state=" + encodeURIComponent(state));
+                }
+            });
         </script>
 
-        <!--start overlay-->
-        <div class="overlay toggle-icon"></div>
-        <!--end overlay-->
-        <!--Start Back To Top Button--> <a href="javaScript:;" class="back-to-top"><i class='bx bxs-up-arrow-alt'></i></a>
-        <!--End Back To Top Button-->
-        <footer class="page-footer">
-            <p class="mb-0">Copyright © 2025. All right reserved. </p>
-        </footer>
-    </div>
-    <!--end wrapper-->
-    <!--start switcher-->
-    <div class="switcher-wrapper">
-        <div class="switcher-btn"> <i class='bx bx-cog bx-spin'></i>
-        </div>
-
-        <div class="switcher-body">
-            <div class="d-flex align-items-center">
-                <h5 class="mb-0 text-uppercase">Theme Customizer</h5>
-                <button type="button" class="btn-close ms-auto close-switcher" aria-label="Close"></button>
-            </div>
-            <hr />
-            <h6 class="mb-0">Theme Styles</h6>
-            <hr />
-            <div class="d-flex align-items-center justify-content-between">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="lightmode">
-                    <label class="form-check-label" for="lightmode">Light</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="darkmode">
-                    <label class="form-check-label" for="darkmode">Dark</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="semidark" checked>
-                    <label class="form-check-label" for="semidark">Semi Dark</label>
-                </div>
-            </div>
-            <hr />
-            <div class="form-check">
-                <input class="form-check-input" type="radio" id="minimaltheme" name="flexRadioDefault">
-                <label class="form-check-label" for="minimaltheme">Minimal Theme</label>
-            </div>
-            <hr />
-            <h6 class="mb-0">Header Colors</h6>
-            <hr />
-            <div class="header-colors-indigators">
-                <div class="row row-cols-auto g-3">
-                    <div class="col">
-                        <div class="indigator headercolor1" id="headercolor1"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor2" id="headercolor2"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor3" id="headercolor3"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor4" id="headercolor4"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor5" id="headercolor5"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor6" id="headercolor6"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor7" id="headercolor7"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor8" id="headercolor8"></div>
-                    </div>
-                </div>
-            </div>
-            <hr />
-            <h6 class="mb-0">Sidebar Colors</h6>
-            <hr />
-            <div class="header-colors-indigators">
-                <div class="row row-cols-auto g-3">
-                    <div class="col">
-                        <div class="indigator sidebarcolor1" id="sidebarcolor1"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor2" id="sidebarcolor2"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor3" id="sidebarcolor3"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor4" id="sidebarcolor4"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor5" id="sidebarcolor5"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor6" id="sidebarcolor6"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor7" id="sidebarcolor7"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor8" id="sidebarcolor8"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!--end switcher-->
-    <!-- Bootstrap JS -->
-    <script src="../assets/js/bootstrap.bundle.min.js"></script>
-    <!--plugins-->
-    <script src="../assets/js/jquery.min.js"></script>
-    <script src="../assets/plugins/simplebar/js/simplebar.min.js"></script>
-    <script src="../assets/plugins/metismenu/js/metisMenu.min.js"></script>
-    <script src="../assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js"></script>
-    <script src="../assets/plugins/chartjs/chart.min.js"></script>
-    <script src="../assets/plugins/vectormap/jquery-jvectormap-2.0.2.min.js"></script>
-    <script src="../assets/plugins/vectormap/jquery-jvectormap-world-mill-en.js"></script>
-    <script src="../assets/plugins/jquery.easy-pie-chart/jquery.easypiechart.min.js"></script>
-    <script src="../assets/plugins/sparkline-charts/jquery.sparkline.min.js"></script>
-    <script src="../assets/plugins/jquery-knob/excanvas.js"></script>
-    <script src="../assets/plugins/jquery-knob/jquery.knob.js"></script>
-    <script>
-        $(function() {
-            $(".knob").knob();
-        });
-    </script>
-    <script src="../assets/js/index.js"></script>
-    <!--app JS-->
-    <script src="../assets/js/app.js"></script>
-    <!-- datatable -->
-    <script src="../template/ahkweb/assets/plugins/datatable/js/jquery.dataTables.min.js"></script>
-    <script src="../template/ahkweb/assets/plugins/datatable/js/dataTables.bootstrap5.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('#example').DataTable();
-        });
-    </script>
-
-    <script>
-        $(document).ready(function() {
-            var table = $('#example2').DataTable({
-                lengthChange: false,
-                buttons: ['copy', 'excel', 'pdf', 'print']
-            });
-
-            table.buttons().container()
-                .appendTo('#example2_wrapper .col-md-6:eq(0)');
-        });
-    </script>
-
-    //for select state wise district
-    <script>
-        // JavaScript AJAX Code
-        document.getElementById('state').addEventListener('change', function() {
-            var state = this.value;
-            var districtDropdown = document.getElementById('district');
-
-            if (state) {
-                // AJAX Request
-                var xhr = new XMLHttpRequest();
-                xhr.open("POST", "get_districts.php", true);
-                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-                xhr.onload = function() {
-                    if (this.status == 200) {
-                        var districts = JSON.parse(this.responseText);
-                        districtDropdown.innerHTML = '<option value="">Select district</option>';
-
-                        districts.forEach(function(district) {
-                            var option = document.createElement('option');
-                            option.value = district.value;
-                            option.textContent = district.text;
-                            districtDropdown.appendChild(option);
-                        });
-                    }
-                }
-
-                xhr.send("state=" + encodeURIComponent(state));
-            }
-        });
-    </script>
-
-    </body>
-
-
-
-    </html>
+        <?php
+        include('layout/footer.php');
+        ?>

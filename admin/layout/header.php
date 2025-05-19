@@ -32,6 +32,108 @@
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
     <title>Welcome TO - Psprint</title>
+
+    <!--start header -->
+    <style>
+        /* Custom styling for the table */
+        .table-responsive {
+            max-height: 500px;
+            overflow: auto;
+            position: relative;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+
+        /* Fixed table layout for equal column widths */
+        #example2 {
+            table-layout: fixed;
+            width: 100%;
+            margin: 0;
+        }
+
+        /* Equal column widths (10 columns = ~10% each) */
+        #example2 th,
+        #example2 td {
+            width: 10%;
+            text-align: center;
+            padding: 12px 8px;
+            vertical-align: middle;
+            word-wrap: break-word;
+        }
+
+        /* Sticky header */
+        #example2 thead th {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            z-index: 10;
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Scrollbar styling */
+        .table-responsive::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Form elements styling */
+        .status-dropdown {
+            width: 100%;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+        }
+
+        .remark-textarea {
+            width: 100%;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            resize: vertical;
+        }
+
+        /* Button styling */
+        .table-responsive button {
+            padding: 5px 10px;
+            margin: 2px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Update button */
+        .table-responsive button:nth-child(1) {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        /* Delete button */
+        .table-responsive button:nth-child(2) {
+            background-color: #f44336;
+            color: white;
+        }
+
+        /* Upload button */
+        .table-responsive button[type="submit"] {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        /* File input styling */
+        .table-responsive input[type="file"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 
 <body>
@@ -69,11 +171,13 @@
                         <div class="menu-title">Wallet </div>
                     </a>
                     <ul>
-                        <li> <a href="wallet.php"><i class="bx bx-right-arrow-alt"></i>Add balance</a>
-                        </li>
+                        <!-- <li> <a href="wallet.php"><i class="bx bx-right-arrow-alt"></i>Add balance</a>
+                        </li> -->
                         <li> <a href="recharge_history.php"><i class="bx bx-right-arrow-alt"></i>Recharge History</a>
                         </li>
                         <li> <a href="wallet_history.php"><i class="bx bx-right-arrow-alt"></i>Wallet History</a>
+                        </li>
+                        <li> <a href="user_wallet_manage.php"><i class="bx bx-right-arrow-alt"></i>User Wallet Manage</a>
                         </li>
 
                     </ul>
@@ -258,7 +362,7 @@
                     <?php
                     $amountt = 0;
 
-                    $amount_sql = "Select * from admin_wallet ";
+                    $amount_sql = "Select * from admin_wallet";
                     $amount_data = mysqli_query($conn, $amount_sql);
                     if (mysqli_num_rows($amount_data) > 0) {
                         while ($row = mysqli_fetch_assoc($amount_data)) {
@@ -268,7 +372,7 @@
                     $total_amount = $amountt;
 
                     ?>
-                    <a class="btn btn-warning" href="wallet.php">Wallet: ₹<?= $total_amount ?></a>
+                    <a class="btn btn-warning">Wallet: ₹<?= $total_amount ?></a>
                     <div class="top-menu ms-auto">
                         <ul class="navbar-nav align-items-center">
 

@@ -13,21 +13,73 @@ include('config.php');
 include 'layout/header.php';
 ?>
 
-
-
 <?php
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ration_number = $_POST['ration_number'];
     $applicant_name = $_POST['applicant_name'];
     $state = $_POST['state'];
+    $phone = $_POST['phone'];
     $district = $_POST['district'];
 
-    $sql = "INSERT INTO ration(ration_number, applicant_name, state, district) values('$ration_number', '$applicant_name', '$state', '$district')";
+    $sql = "INSERT INTO ration(ration_number, applicant_name, state, district, phone) values('$ration_number', '$applicant_name', '$state', '$district', '$phone')";
     if (mysqli_query($conn, $sql)) {
-        echo "<script>
-        alert('Data Inserted Succesfully');
-        </script>";
+        // Green API Details
+        $idInstance = "7105242669";
+        $apiToken = "dfb24b0b4e784ed4814e3a780e2ea43d01b49830e9a94562b2";
+        $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+        // -----------------------------
+        // ✅ 1. Message to Applicant
+        // -----------------------------
+        $applicantNumber = "91" . $phone . "@c.us";
+        $messageToUser = "Hello $name, your application for the Ration to Aadhar has been submitted successfully. Thank you!";
+
+        $dataUser = [
+            "chatId" => $applicantNumber,
+            "message" => $messageToUser
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response1 = curl_exec($ch);
+        curl_close($ch);
+
+
+        // -----------------------------
+        // ✅ 2. Message to Admin
+        // -----------------------------
+        $adminNumber = "918303293043@c.us";
+        $messageToAdmin =
+            "Ration to Aadhar Application Received:\n\n" .
+            "Applicant Name: $applicant_name\n" .
+            "Phone: $phone\n" .
+            "Ration Card Number: $ration_number\n" .
+            "District: $district\n" .
+            "State: $state\n";
+
+        $dataAdmin = [
+            "chatId" => $adminNumber,
+            "message" => $messageToAdmin
+        ];
+
+        $ch2 = curl_init($url);
+        curl_setopt($ch2, CURLOPT_POST, 1);
+        curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($dataAdmin));
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response2 = curl_exec($ch2);
+        curl_close($ch2);
+
+
+        echo "
+        <script>
+            alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+        </script>
+    ";
     }
 }
 ?>
@@ -79,6 +131,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                     </div>
                                                 </div>
                                                 <div class="col-md-12">
+                                                    <div class="form-group">
+                                                        <label class="card-title" for="phone">Phone Number<span class="required-mark text-red" style="color:red;">*</span></label>
+                                                        <input type="text" class="form-control" name="phone" id="phone">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-12">
                                                     <label for="state">State:</label>
                                                     <select name="state" id="state" class="form-control" required>
                                                         <option value="">Select a district...</option>
@@ -94,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                     </select><br>
                                                 </div>
                                                 <?php
-                                                $fee_sql = "SELECT * from services where service_name = 'Ration to Aadhar'";
+                                                $fee_sql = "SELECT * from services where service_name = 'ration_to_aadhar'";
                                                 $fee_data = mysqli_query($conn, $fee_sql);
                                                 if (mysqli_num_rows($fee_data) > 0) {
                                                     $row = mysqli_fetch_assoc($fee_data);
@@ -119,14 +177,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="col-md-12">
                 </div>
             </div>
-            <script src="../assets/js/bootstrap.bundle.min.js"></script>
-            <!--plugins-->
-            <!-- <script src="../assets/js/jquery.min.js"></script> -->
-            <script src="../assets/plugins/simplebar/js/simplebar.min.js"></script>
-            <script src="../assets/plugins/metismenu/js/metisMenu.min.js"></script>
-            <script src="../assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js"></script>
-            <!--app JS-->
-            <script src="../assets/js/app.js"></script>
+
+
+
+
 
             //for select state wise district
             <script>
@@ -160,117 +214,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 });
             </script>
 
-
-</body>
-
-</html>
-
-
-
-<!--start overlay-->
-<div class="overlay toggle-icon"></div>
-<!--end overlay-->
-<!--Start Back To Top Button--> <a href="javaScript:;" class="back-to-top"><i class='bx bxs-up-arrow-alt'></i></a>
-<!--End Back To Top Button-->
-<footer class="page-footer">
-    <p class="mb-0">Copyright © 2025. All right reserved. </p>
-</footer>
-</div>
-<!--end wrapper-->
-<!--start switcher-->
-<div class="switcher-wrapper">
-    <div class="switcher-btn"> <i class='bx bx-cog bx-spin'></i>
-    </div>
-
-    <div class="switcher-body">
-        <div class="d-flex align-items-center">
-            <h5 class="mb-0 text-uppercase">Theme Customizer</h5>
-            <button type="button" class="btn-close ms-auto close-switcher" aria-label="Close"></button>
-        </div>
-        <hr />
-        <h6 class="mb-0">Theme Styles</h6>
-        <hr />
-        <div class="d-flex align-items-center justify-content-between">
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="lightmode">
-                <label class="form-check-label" for="lightmode">Light</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="darkmode">
-                <label class="form-check-label" for="darkmode">Dark</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="semidark" checked>
-                <label class="form-check-label" for="semidark">Semi Dark</label>
-            </div>
-        </div>
-        <hr />
-        <div class="form-check">
-            <input class="form-check-input" type="radio" id="minimaltheme" name="flexRadioDefault">
-            <label class="form-check-label" for="minimaltheme">Minimal Theme</label>
-        </div>
-        <hr />
-        <h6 class="mb-0">Header Colors</h6>
-        <hr />
-        <div class="header-colors-indigators">
-            <div class="row row-cols-auto g-3">
-                <div class="col">
-                    <div class="indigator headercolor1" id="headercolor1"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor2" id="headercolor2"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor3" id="headercolor3"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor4" id="headercolor4"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor5" id="headercolor5"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor6" id="headercolor6"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor7" id="headercolor7"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor8" id="headercolor8"></div>
-                </div>
-            </div>
-        </div>
-        <hr />
-        <h6 class="mb-0">Sidebar Colors</h6>
-        <hr />
-        <div class="header-colors-indigators">
-            <div class="row row-cols-auto g-3">
-                <div class="col">
-                    <div class="indigator sidebarcolor1" id="sidebarcolor1"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor2" id="sidebarcolor2"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor3" id="sidebarcolor3"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor4" id="sidebarcolor4"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor5" id="sidebarcolor5"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor6" id="sidebarcolor6"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor7" id="sidebarcolor7"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor8" id="sidebarcolor8"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!--end switcher-->
+            <?php
+            include('layout/footer.php');
+            ?>

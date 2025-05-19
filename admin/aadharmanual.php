@@ -32,20 +32,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $language = $_POST['language'];
     $name_local_language  = $_POST['name_local_language'];
     $address_local_language = $_POST['address_local_language'];
+    $phone = $_POST['phone'];
 
     $filename = time() . $_FILES['image']['name'];
     $tempname = $_FILES['image']['tmp_name'];
     move_uploaded_file($tempname, '../assets/upload/' . $filename);
 
-    $sql = "INSERT INTO aadhar(aadhar_no, name, fname, house_no, locality, post_office, state, city, pin_code, dob, birth_address,gender, address, image, language, name_local_language, address_local_language)
+    $sql = "INSERT INTO aadhar(aadhar_no, name, fname, house_no, locality, post_office, state, city, pin_code, dob, birth_address,gender, address, image, language, name_local_language, address_local_language, phone)
     values('$aadhar_no', '$name', '$fName', '$house_no', '$locality', '$post_office', '$state', '$city', '$pin_code', 
-    '$dob', '$birth_address', '$gender', '$address', '$filename', '$language', '$name_local_language', '$address_local_language')";
+    '$dob', '$birth_address', '$gender', '$address', '$filename', '$language', '$name_local_language', '$address_local_language', '$phone')";
 
     if (mysqli_query($conn, $sql)) {
-        echo "<script>
-        alert('Data Inserted Successfullly');
-        window.location.href = 'aadharmanual.php';
-        </script>";
+        // Green API Details
+        $idInstance = "7105242669";
+        $apiToken = "dfb24b0b4e784ed4814e3a780e2ea43d01b49830e9a94562b2";
+        $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+        // -----------------------------
+        // ✅ 1. Message to Applicant
+        // -----------------------------
+        $applicantNumber = "91" . $phone . "@c.us";
+        $messageToUser = "Hello $name, your application for the Aadhar has been submitted successfully. Thank you!";
+
+        $dataUser = [
+            "chatId" => $applicantNumber,
+            "message" => $messageToUser
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response1 = curl_exec($ch);
+        curl_close($ch);
+
+
+        // -----------------------------
+        // ✅ 2. Message to Admin
+        // -----------------------------
+        $adminNumber = "918303293043@c.us";
+        $messageToAdmin =
+            "Aadhar Application Received:\n\n" .
+            "Name: $name\n" .
+            "Father's Name: $fName\n" .
+            "Phone: $phone\n" .
+            "DOB: $dob\n" .
+            "Gender: $gender\n" .
+            "House No: $house_no\n" .
+            "Locality: $locality\n" .
+            "Post Office: $post_office\n" .
+            "City: $city\n" .
+            "State: $state\n" .
+            "Pin Code: $pin_code\n" .
+            "Full Address: $address\n" .
+            "Birth Place Address: $birth_address\n" .
+            "Language: $language\n" .
+            "Name (Local Language): $name_local_language\n" .
+            "Address (Local Language): $address_local_language\n" .
+            "Aadhaar No: $aadhar_no\n";
+
+        $dataAdmin = [
+            "chatId" => $adminNumber,
+            "message" => $messageToAdmin
+        ];
+
+        $ch2 = curl_init($url);
+        curl_setopt($ch2, CURLOPT_POST, 1);
+        curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($dataAdmin));
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response2 = curl_exec($ch2);
+        curl_close($ch2);
+
+
+        echo "
+        <script>
+            alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+        </script>
+    ";
     }
 }
 
@@ -176,6 +241,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 </select><br>
                                             </div>
                                         </div>
+                                        <div class="col-sm-4">
+                                            <label>Phone Number</label>
+                                            <input class="form-control " id="phone" name="phone" type="text">
+                                        </div></br>
                                         <!-- <div class="col-sm-4">
                                             <label>Gender Local</label>
                                             <input class="form-control " id="genderlocal" name="genderlocal" type="text" value="">
@@ -253,17 +322,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <div class="form-group">
                                             <button type="submit" name="savedataauto" class="btn btn-success btn-block">Submit</button>
                                         </div>
-
-
-
                                     </div>
                                     <div class="col-sm-3">
                                         <label>&nbsp;</label>
                                         <div class="form-group">
                                             <a href="https://www.google.com/intl/sa/inputtools/try/" target="_blank" type="button" name="button" class="btn btn-primary btn-block">Open Google Input Tools</a>
                                         </div>
-
-
                                     </div>
                                 </div>
                             </div>
@@ -272,7 +336,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </form>
 
                     </div>
-                    <!-- /# row -->
                     </section>
                 </div>
             </div>
@@ -283,13 +346,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script type="text/javascript">
         function validation() {
 
-            /*	var aadharno = document.getElementById('aadharno').value;
-            	if ( aadharno.length < 12 ) {
-            		 document.getElementById('erroraadharno').innerHTML = " **Please Enter 12 Digit Aadhaar Card Number !!!";
-            		 document.getElementById('aadharno').style.border = "1px solid red";
-            		 document.getElementById('aadharno').focus();
-            		 return false;
-            	}*/
+
 
             var txtSource = document.getElementById('txtSource').value;
             if (txtSource.trim() == "") {
@@ -513,141 +570,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 100% !important;
         }
     </style>
-    <!--end page wrapper -->
-
-    <!--start overlay-->
-    <div class="overlay toggle-icon"></div>
-    <!--end overlay-->
-    <!--Start Back To Top Button--> <a href="javaScript:;" class="back-to-top"><i class='bx bxs-up-arrow-alt'></i></a>
-    <!--End Back To Top Button-->
-    <footer class="page-footer">
-        <p class="mb-0">Copyright © 2025. All right reserved. </p>
-    </footer>
-</div>
-<!--end wrapper-->
-<!--start switcher-->
-<div class="switcher-wrapper">
-    <div class="switcher-btn"> <i class='bx bx-cog bx-spin'></i>
-    </div>
-
-    <div class="switcher-body">
-        <div class="d-flex align-items-center">
-            <h5 class="mb-0 text-uppercase">Theme Customizer</h5>
-            <button type="button" class="btn-close ms-auto close-switcher" aria-label="Close"></button>
-        </div>
-        <hr />
-        <h6 class="mb-0">Theme Styles</h6>
-        <hr />
-        <div class="d-flex align-items-center justify-content-between">
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="lightmode">
-                <label class="form-check-label" for="lightmode">Light</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="darkmode">
-                <label class="form-check-label" for="darkmode">Dark</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="semidark" checked>
-                <label class="form-check-label" for="semidark">Semi Dark</label>
-            </div>
-        </div>
-        <hr />
-        <div class="form-check">
-            <input class="form-check-input" type="radio" id="minimaltheme" name="flexRadioDefault">
-            <label class="form-check-label" for="minimaltheme">Minimal Theme</label>
-        </div>
-        <hr />
-        <h6 class="mb-0">Header Colors</h6>
-        <hr />
-        <div class="header-colors-indigators">
-            <div class="row row-cols-auto g-3">
-                <div class="col">
-                    <div class="indigator headercolor1" id="headercolor1"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor2" id="headercolor2"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor3" id="headercolor3"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor4" id="headercolor4"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor5" id="headercolor5"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor6" id="headercolor6"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor7" id="headercolor7"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator headercolor8" id="headercolor8"></div>
-                </div>
-            </div>
-        </div>
-        <hr />
-        <h6 class="mb-0">Sidebar Colors</h6>
-        <hr />
-        <div class="header-colors-indigators">
-            <div class="row row-cols-auto g-3">
-                <div class="col">
-                    <div class="indigator sidebarcolor1" id="sidebarcolor1"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor2" id="sidebarcolor2"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor3" id="sidebarcolor3"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor4" id="sidebarcolor4"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor5" id="sidebarcolor5"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor6" id="sidebarcolor6"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor7" id="sidebarcolor7"></div>
-                </div>
-                <div class="col">
-                    <div class="indigator sidebarcolor8" id="sidebarcolor8"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!--end switcher-->
-<!-- Bootstrap JS -->
 
 
-<script src="../assets/js/bootstrap.bundle.min.js"></script>
-<!--plugins-->
-<!-- <script src="../assets/js/jquery.min.js"></script> -->
-<script src="../assets/plugins/simplebar/js/simplebar.min.js"></script>
-<script src="../assets/plugins/metismenu/js/metisMenu.min.js"></script>
-<script src="../assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js"></script>
-<!--app JS-->
-<script src="../assets/js/app.js"></script>
-</body>
-
-<script>
-    $(document).ready(function() {
-
-        $('#eid').inputmask();
-        $('#date').inputmask();
-        $('#pan_no').inputmask();
-        $('#timea').inputmask("hh:mm:ss", {
-            placeholder: "00:00:00",
-            insertMode: false,
-            showMaskOnHover: false,
-            hourFormat: 12
-        });
-    });
-</script>
-
-</html>
+    <?php
+    include('layout/footer.php');
+    ?>

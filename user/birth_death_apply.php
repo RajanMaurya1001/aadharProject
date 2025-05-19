@@ -11,6 +11,9 @@ if ($_SESSION['role'] !== '0' && $_SESSION['role'] !== 0) {
 $id = $_SESSION['id'];
 include('config.php');
 include 'layout/header.php';
+
+
+
 ?>
 
 
@@ -35,7 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $mName = $_POST['mName'];
     $mAadhar = $_POST['mAadhar'];
     $address = $_POST['address'];
+    $phone = $_POST['phone'];
     $status = 'pending';
+
+
 
     $currentYear = date('Y');
     $prefix = 'Birth_APP' . $currentYear;
@@ -51,15 +57,112 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $application_no = $prefix . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
 
 
-    $sql = "INSERT INTO birth_certificate(certificate, state, district, name, aadhar_number, gender, dob, fName, fAadhar, mName, mAadhar, address, application_no, status, user_id) 
-     VALUES('$certificate', '$state', '$district', '$name', '$aadhar_number', '$gender', '$dob', '$fName', '$fAadhar', '$mName', '$mAadhar', '$address', '$application_no','$status', '$id')";
+    $sql = "INSERT INTO birth_certificate(certificate, state, district, name, aadhar_number, gender, dob, fName, fAadhar, mName, mAadhar, address, application_no, phone, status, user_id) 
+     VALUES('$certificate', '$state', '$district', '$name', '$aadhar_number', '$gender', '$dob', '$fName', '$fAadhar', '$mName', '$mAadhar', '$address', '$application_no', '$phone', '$status', '$id')";
 
     if (mysqli_query($conn, $sql)) {
+        // Step 1: Check Wallet Balance
+        $checkWalletQuery = "SELECT wallet_balence FROM total_wallet_balence WHERE user_id = $id";
+        $checkWalletResult = mysqli_query($conn, $checkWalletQuery);
+
+        if ($checkWalletResult && mysqli_num_rows($checkWalletResult) > 0) {
+            $row = mysqli_fetch_assoc($checkWalletResult);
+            $walletBalence = (float)$row['wallet_balence'];
+
+            if ($walletBalence <= 0) {
+                echo "<script>
+                 alert('Insufficient balance. Please add money first.');
+                 window.location.href = 'birth_death_apply.php';
+                </script>";
+                exit;
+            }
+        } else {
+            echo "<script>
+                 alert('Wallet not found.');
+                </script>";
+            exit;
+        }
         $minusWalletUser = "UPDATE total_wallet_balence SET wallet_balence = wallet_balence - '$chargeis' WHERE user_id = $id";
+
+
         if (mysqli_query($conn, $minusWalletUser)) {
-            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis' WHERE user_id = 1";
+
+
+            // Wallet History Insert Code
+            $purpose = 'Birth Certificate';
+            $type = 'debit';
+            $status = 1;
+            // $transaction_id = 'TXN' . rand(10000, 99999);
+
+            $getNewBal = mysqli_query($conn, "SELECT wallet_balence FROM total_wallet_balence WHERE user_id = $id");
+            $newBalRow = mysqli_fetch_assoc($getNewBal);
+            $new_balance = $newBalRow['wallet_balence'];
+
+            $insertLog = "INSERT INTO wallet_transaction_history 
+             (user_id, amount, available_balance, purpose, type, status)
+             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status)";
+            mysqli_query($conn, $insertLog);
+
+
+            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis' WHERE user_id = $id";
             if (mysqli_query($conn, $minusWalletAdmin)) {
-                echo "<script>alert('Birth applied'); window.location.href='index.php';</script>";
+                // Green API Details
+                $idInstance = "7105245150";
+                $apiToken = "5930752ee220440da365847180fbf93eba31bf1fe50947f4a2";
+                $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+                // -----------------------------
+                // ✅ 1. Message to Applicant
+                // -----------------------------
+                $applicantNumber = "91" . $phone . "@c.us";
+                $messageToUser = "Hello $name, your application for the Birth Cirtificate has been submitted successfully. Thank you!";
+
+                $dataUser = [
+                    "chatId" => $applicantNumber,
+                    "message" => $messageToUser
+                ];
+
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                $response1 = curl_exec($ch);
+                curl_close($ch);
+
+
+                // -----------------------------
+                // ✅ 2. Message to Admin
+                // -----------------------------
+                $adminNumber = "918303293043@c.us";
+                $messageToAdmin =
+                    "Birth Cirtificate Application Received:\n\n" .
+                    "Name: $name\n" .
+                    "Phone: $phone\n" .
+                    "DOB: $dob\n" .
+                    "Address: $address\n" .
+                    "Aadhaar No: $aadhar_number\n" .
+                    "Registration Fee: ₹$chargeis\n";
+
+                $dataAdmin = [
+                    "chatId" => $adminNumber,
+                    "message" => $messageToAdmin
+                ];
+
+                $ch2 = curl_init($url);
+                curl_setopt($ch2, CURLOPT_POST, 1);
+                curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($dataAdmin));
+                curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                $response2 = curl_exec($ch2);
+                curl_close($ch2);
+
+
+                echo "
+        <script>
+            alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+        </script>
+    ";
             } else {
                 echo "Error updating admin_wallet: " . mysqli_error($conn);
             }
@@ -179,6 +282,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             <label for="applicant_aadhar">आधार नंबर / ADHAR NUMBER*</label>
                             <input type="text" oninput="this.value = this.value.toUpperCase()" name="aadhar_number" class="form-control" required><br>
+                            <label for="phone">PHONE NUMBER*</label>
+                            <input type="text" name="phone" class="form-control" required><br>
 
                             <label for="gender">लिंग / Gender*</label>
                             <select name="gender" class="form-control" required>

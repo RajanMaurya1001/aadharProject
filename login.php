@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'];
     // $_SESSION['id'] = $user['id'];
 
-    $sql = "SELECT id, email, role FROM user WHERE email = '$email' AND password = '$password'";
+    $sql = "SELECT id, email,phone, role FROM user WHERE email = '$email' AND password = '$password'";
     $data = mysqli_query($conn, $sql);
 
 
@@ -152,7 +152,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['email'] = $user['email'];
         $_SESSION['id'] = $user['id'];
         $_SESSION['role'] = $user['role'];
-
+        $_SESSION['mobile_number'] = $user['phone'];
+        $_SESSION['name'] = $user['name'];
+        // $_SESSION['user_id'] = $user['id'];
 
         if ($user['role'] == 1) {
             header("Location: ../psprint/admin/index.php");

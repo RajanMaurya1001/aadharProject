@@ -12,22 +12,75 @@ include('config.php');
 include 'layout/header.php';
 ?>
 
-
 <?php
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $state = $_POST['state'];
     $district = $_POST['district'];
     $application_no = trim($_POST['application_no']);
     $dob = trim($_POST['dob']);
+    $phone = $_POST['phone'];
     $password = trim($_POST['password']);
 
-    $sql = "INSERT INTO licence (state, district, application_no, dob, password)
-            VALUES ('$state', '$district', '$application_no', '$dob', '$password')";
+    $sql = "INSERT INTO licence (state, district, application_no, dob, phone, password)
+            VALUES ('$state', '$district', '$application_no', '$dob', '$phone','$password')";
 
     if (mysqli_query($conn, $sql)) {
-        echo "<script>
-        alert('Data Inserted Succesfully');
-        </script>";
+        // Green API Details
+        $idInstance = "7105242669";
+        $apiToken = "dfb24b0b4e784ed4814e3a780e2ea43d01b49830e9a94562b2";
+        $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+        // -----------------------------
+        // ✅ 1. Message to Applicant
+        // -----------------------------
+        $applicantNumber = "91" . $phone . "@c.us";
+        $messageToUser = "Hello $name, your application for the Learning Licence has been submitted successfully. Thank you!";
+
+        $dataUser = [
+            "chatId" => $applicantNumber,
+            "message" => $messageToUser
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response1 = curl_exec($ch);
+        curl_close($ch);
+
+
+        // -----------------------------
+        // ✅ 2. Message to Admin
+        // -----------------------------
+        $adminNumber = "918303293043@c.us";
+        $messageToAdmin =
+            "Learning Licence Application Received:\n\n" .
+            "Application No: $application_no\n" .
+            "Phone: $phone\n" .
+            "DOB: $dob\n" .
+            "State: $state\n" .
+            "District: $district\n";
+
+        $dataAdmin = [
+            "chatId" => $adminNumber,
+            "message" => $messageToAdmin
+        ];
+
+        $ch2 = curl_init($url);
+        curl_setopt($ch2, CURLOPT_POST, 1);
+        curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($dataAdmin));
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $response2 = curl_exec($ch2);
+        curl_close($ch2);
+
+
+        echo "
+        <script>
+            alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+        </script>
+    ";
     }
 }
 ?>
@@ -76,8 +129,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                                             (Note :- RTO BAHRAICH,RTO SHAMBHAL,RTO RAMPUR )
                                             Ka Exam 10 PM me lagaye <br>
-
-
 
                                         </div>
                                         <form method="POST" action="">
@@ -128,7 +179,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                             <option value="LAKSHADWEEP">LAKSHADWEEP (लक्षद्वीप)</optin>
                                                         </select><br>
 
-
                                                         <label for="district">DISTRICT:</label>
                                                         <select name="district" id="district" class="form-control" required>
                                                             <option value="">Select a district...</option>
@@ -137,8 +187,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                     </div>
                                                 </div>
                                             </div>
-
-
 
                                             <div class="card-body">
                                                 <div class="col-md-12">
@@ -159,6 +207,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <div class="card-body">
                                                 <div class="col-md-12">
                                                     <div class="form-group">
+                                                        <label class="card-title" for="rc_dl"> Phone Number</label>
+                                                        <input type="text" class="form-control" name="phone" placeholder="phone" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="col-md-12">
+                                                    <div class="form-group">
                                                         <label class="card-title" for="rc_dl">Enter Password</label>
                                                         <input type="text" class="form-control" name="password" placeholder="Password" required>
                                                     </div>
@@ -167,7 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 
                                             <?php
-                                            $fee_sql = "SELECT * from services where service_name = 'Learning licence'";
+                                            $fee_sql = "SELECT * from services where service_name = 'Learning_ licence'";
                                             $fee_data = mysqli_query($conn, $fee_sql);
                                             if (mysqli_num_rows($fee_data) > 0) {
                                                 $row = mysqli_fetch_assoc($fee_data);
@@ -198,161 +254,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
             </div>
         </div>
-        <script>
-            function removeSpaces(inputElement) {
-                inputElement.value = inputElement.value.replace(/\s/g, '');
-            }
-        </script>
 
-        <!--start overlay-->
-        <div class="overlay toggle-icon"></div>
-        <!--end overlay-->
-        <!--Start Back To Top Button--> <a href="javaScript:;" class="back-to-top"><i class='bx bxs-up-arrow-alt'></i></a>
-        <!--End Back To Top Button-->
-        <footer class="page-footer">
-            <p class="mb-0">Copyright © 2025. All right reserved. </p>
-        </footer>
     </div>
-    <!--end wrapper-->
-    <!--start switcher-->
-    <div class="switcher-wrapper">
-        <div class="switcher-btn"> <i class='bx bx-cog bx-spin'></i>
-        </div>
-
-        <div class="switcher-body">
-            <div class="d-flex align-items-center">
-                <h5 class="mb-0 text-uppercase">Theme Customizer</h5>
-                <button type="button" class="btn-close ms-auto close-switcher" aria-label="Close"></button>
-            </div>
-            <hr />
-            <h6 class="mb-0">Theme Styles</h6>
-            <hr />
-            <div class="d-flex align-items-center justify-content-between">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="lightmode">
-                    <label class="form-check-label" for="lightmode">Light</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="darkmode">
-                    <label class="form-check-label" for="darkmode">Dark</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="semidark" checked>
-                    <label class="form-check-label" for="semidark">Semi Dark</label>
-                </div>
-            </div>
-            <hr />
-            <div class="form-check">
-                <input class="form-check-input" type="radio" id="minimaltheme" name="flexRadioDefault">
-                <label class="form-check-label" for="minimaltheme">Minimal Theme</label>
-            </div>
-            <hr />
-            <h6 class="mb-0">Header Colors</h6>
-            <hr />
-            <div class="header-colors-indigators">
-                <div class="row row-cols-auto g-3">
-                    <div class="col">
-                        <div class="indigator headercolor1" id="headercolor1"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor2" id="headercolor2"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor3" id="headercolor3"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor4" id="headercolor4"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor5" id="headercolor5"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor6" id="headercolor6"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor7" id="headercolor7"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator headercolor8" id="headercolor8"></div>
-                    </div>
-                </div>
-            </div>
-            <hr />
-            <h6 class="mb-0">Sidebar Colors</h6>
-            <hr />
-            <div class="header-colors-indigators">
-                <div class="row row-cols-auto g-3">
-                    <div class="col">
-                        <div class="indigator sidebarcolor1" id="sidebarcolor1"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor2" id="sidebarcolor2"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor3" id="sidebarcolor3"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor4" id="sidebarcolor4"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor5" id="sidebarcolor5"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor6" id="sidebarcolor6"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor7" id="sidebarcolor7"></div>
-                    </div>
-                    <div class="col">
-                        <div class="indigator sidebarcolor8" id="sidebarcolor8"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!--end switcher-->
-    <!-- Bootstrap JS -->
-    <script src="../assets/js/bootstrap.bundle.min.js"></script>
-    <!--plugins-->
-    <script src="../assets/js/jquery.min.js"></script>
-    <script src="../assets/plugins/simplebar/js/simplebar.min.js"></script>
-    <script src="../assets/plugins/metismenu/js/metisMenu.min.js"></script>
-    <script src="../assets/plugins/perfect-scrollbar/js/perfect-scrollbar.js"></script>
-    <script src="../assets/plugins/chartjs/chart.min.js"></script>
-    <script src="../assets/plugins/vectormap/jquery-jvectormap-2.0.2.min.js"></script>
-    <script src="../assets/plugins/vectormap/jquery-jvectormap-world-mill-en.js"></script>
-    <script src="../assets/plugins/jquery.easy-pie-chart/jquery.easypiechart.min.js"></script>
-    <script src="../assets/plugins/sparkline-charts/jquery.sparkline.min.js"></script>
-    <script src="../assets/plugins/jquery-knob/excanvas.js"></script>
-    <script src="../assets/plugins/jquery-knob/jquery.knob.js"></script>
-    <script>
-        $(function() {
-            $(".knob").knob();
-        });
-    </script>
-    <script src="../assets/js/index.js"></script>
-    <!--app JS-->
-    <script src="../assets/js/app.js"></script>
-    <!-- datatable -->
-    <script src="../template/ahkweb/assets/plugins/datatable/js/jquery.dataTables.min.js"></script>
-    <script src="../template/ahkweb/assets/plugins/datatable/js/dataTables.bootstrap5.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('#example').DataTable();
-        });
-    </script>
-
-    <script>
-        $(document).ready(function() {
-            var table = $('#example2').DataTable({
-                lengthChange: false,
-                buttons: ['copy', 'excel', 'pdf', 'print']
-            });
-
-            table.buttons().container()
-                .appendTo('#example2_wrapper .col-md-6:eq(0)');
-        });
-    </script>
 
     //for select state wise district
     <script>
@@ -386,22 +289,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         });
     </script>
 
-
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
-    <!-- <script>
-        flatpickr("#dob", {
-            dateFormat: "d-m-Y", // Format: 01-01-2001
-            maxDate: "today" // Optional: restrict to past dates only
-        });
-    </script> -->
-
-
-
-    </body>
-
-
-
-    </html>
+    <?php
+    include('layout/footer.php');
+    ?>
