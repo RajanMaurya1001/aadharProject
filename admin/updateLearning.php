@@ -10,8 +10,18 @@ if ($_SESSION['role'] !== '1' && $_SESSION['role'] !== 1) {
 }
 $id = $_SESSION['id'];
 include('config.php');
-// include 'layout/header.php';
+include 'layout/header.php';
+
+// Fetch charge once
+$chargeis = 0;
+$fetchServiceCharge = "SELECT service_charge FROM services WHERE service_name='Learning_licence'";
+$DataBirth = mysqli_query($conn, $fetchServiceCharge);
+if (mysqli_num_rows($DataBirth) > 0) {
+    $resData = mysqli_fetch_array($DataBirth);
+    $chargeis = $resData['service_charge'];
+}
 ?>
+
 
 
 <?php
@@ -21,25 +31,158 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $application_no = trim($_POST['application_no']);
     $dob = trim($_POST['dob']);
     $password = trim($_POST['password']);
+    $status = isset($_POST['status']) ? $_POST['status'] : '';
+    $remark = isset($_POST['remark']) ? $_POST['remark'] : '';
     $id = $_POST['id'];
 
-    $sql = "update  licence set 
-           state = '$state',
+
+    // Get phone number
+    $getUser = mysqli_query($conn, "SELECT user_id FROM  licence WHERE id = $id");
+    $userData = mysqli_fetch_assoc($getUser);
+    $user_id = $userData['user_id'];
+
+    $getPhone = mysqli_query($conn, "SELECT phone FROM user WHERE id = $user_id");
+    $phoneData = mysqli_fetch_assoc($getPhone);
+    $phone = $phoneData['phone'];
+
+    if (empty($_FILES['certificate_file']['name'])) {
+        $filename = $_POST['oldimage'];
+    } else {
+        $filename = time() . $_FILES['certificate_file']['name'];
+        $tempname = $_FILES['certificate_file']['tmp_name'];
+        move_uploaded_file($tempname, '../assets/certificates/' . $filename);
+    }
+
+    $sql = "update  licence set
+           state ='$state',
            district = '$district',
            application_no = '$application_no',
            dob = '$dob',
-           password = '$password'
+           password = '$password',
+           status = '$status',
+           certificate_file = '$filename',
+           remark = '$remark'
            where  id = '$id'";
 
 
 
     if (mysqli_query($conn, $sql)) {
-        echo "<script>
+        if ($status != "Rejected") {
+            // Escape variables for safety
+            $status = mysqli_real_escape_string($conn, $status);
+            $id = intval($id); // Ensure ID is integer
+
+            $sql = "UPDATE licence SET status = '$status' WHERE id = $id";
+            mysqli_query($conn, $sql);
+
+            echo "<script>console.log(" . json_encode($sql) . ");</script>";
+        } else {
+            // Escape variables
+            $status = mysqli_real_escape_string($conn, $status);
+            $id = intval($id);
+            $chargeis = floatval($chargeis); // Ensure numeric value
+            $user_id = intval($user_id);
+
+            // Update ration status
+            $sql = "UPDATE licence SET status = '$status' WHERE id = $id";
+            mysqli_query($conn, $sql);
+
+            // Update main wallet
+            $updtMainWallet = "UPDATE total_wallet_balence SET wallet_balence = wallet_balence + $chargeis WHERE user_id = $user_id";
+            mysqli_query($conn, $updtMainWallet);
+
+            // Deduct from admin wallet
+            $deductAdminWallet = "UPDATE admin_wallet SET amount = amount - $chargeis";
+            mysqli_query($conn, $deductAdminWallet);
+
+            // Get current balance
+            $getBal = mysqli_query($conn, "SELECT wallet_balence FROM total_wallet_balence WHERE user_id = $user_id");
+            $balRow = mysqli_fetch_assoc($getBal);
+
+            if ($balRow && isset($balRow['wallet_balence'])) {
+                $current_balance = $balRow['wallet_balence'];
+
+                // Insert wallet transaction log
+                $purpose = 'Refund: Learning Licenece Apply';
+                $type = 'debit';
+                $log_status = 1; // Changed variable name to avoid conflict with $status
+
+                // Escape strings
+                $purpose = mysqli_real_escape_string($conn, $purpose);
+                $type = mysqli_real_escape_string($conn, $type);
+
+                $insertLog = "INSERT INTO wallet_transaction_history 
+                (user_id, amount, available_balance, purpose, type, status)
+                VALUES ($user_id, $chargeis, $current_balance, '$purpose', '$type', $log_status)";
+
+                mysqli_query($conn, $insertLog);
+            } else {
+                // Handle case where user wallet record doesn't exist
+                echo "<script>alert('Wallet balance not found for this user!');</script>";
+            }
+        }
+
+        if ($phone) {
+            // Green API Details
+            $idInstance = "7105245778";
+            $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
+            $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+            // -----------------------------
+            // ✅ 1. Message to Applicant
+            // -----------------------------
+            $applicantNumber = "91" . $phone . "@c.us";
+            $messageToUser = "Hello $application_no, your application for the Learning Licence has been $status.\n\n" .
+                "remark : $remark\n\n" .
+                "Thank you!";
+
+            $dataUser = [
+                "chatId" => $applicantNumber,
+                "message" => $messageToUser
+            ];
+
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            $response1 = curl_exec($ch);
+            curl_close($ch);
+
+            // -----------------------------
+            // ✅ 2. Message to Admin
+            // -----------------------------
+            $adminNumber = "917266956455@c.us";
+            $messageToAdmin =
+                "Learning Licence Application $status is:\n\n" .
+                "application_no: $application_no\n\n" .
+                "Reason: $remark\n\n" .
+                "Application Status: $status\n";
+
+            $dataAdmin = [
+                "chatId" => $adminNumber,
+                "message" => $messageToAdmin
+            ];
+
+            $ch2 = curl_init($url);
+            curl_setopt($ch2, CURLOPT_POST, 1);
+            curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($dataAdmin));
+            curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            $response2 = curl_exec($ch2);
+            curl_close($ch2);
+
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => mysqli_error($conn)]);
+        }
+    }
+    echo "<script>
     alert('Data Update Successfully');
     window.location.href= 'll_list.php';
     </script>";
-    }
 }
+
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
@@ -99,7 +242,24 @@ if (isset($_GET['id'])) {
 
 
                                         </div>
-                                        <form method="POST" action="">
+                                        <form method="POST" action="" enctype="multipart/form-data">
+                                            <label for="status">Status</label>
+                                            <select class="form-select form-select-sm status-dropdown" name="status" data-id="<?= $row['id'] ?>">
+                                                <option value="Pending" <?= $row['status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
+                                                <option value="Process" <?= $row['status'] == 'Process' ? 'selected' : '' ?>>Process</option>
+                                                <option value="Approved" <?= $row['status'] == 'Approved' ? 'selected' : '' ?>>Approved</option>
+                                                <option value="Rejected" <?= $row['status'] == 'Rejected' ? 'selected' : '' ?>>Rejected</option>
+                                            </select>
+
+                                            <label for="remark">Remark</label>
+                                            <input type="text" name="remark" oninput="this.value = this.value.toUpperCase()" class="form-control" value="<?= $row['remark'] ?>"><br>
+                                            <!-- <label for="certificate">Upload Certificate</label> -->
+                                            <input type="hidden" name="oldimage" class="form-control " value="<?= $row['certificate_file'] ?>">
+                                            <img src="../assets/certificates/<?= $row['certificate_file'] ?>" alt="" height="50px" width="50px" class="">
+
+                                            <label for="certificate">Upload Certificate</label>
+                                            <input type="file" name="certificate_file" oninput="this.value = this.value.toUpperCase()" class="form-control" value="<?= $row['certificate_file'] ?>"><br>
+
 
 
                                             <div class="card-body">
@@ -107,7 +267,7 @@ if (isset($_GET['id'])) {
                                                     <div class="form-group">
                                                         <input type="hidden" name="id" value="<?= $row['id'] ?>">
                                                         <label class="card-title" for="state">Select State</label>
-                                                        <select class="form-control" name="state" required id="state">
+                                                        <select class="form-control" name="state" id="state">
                                                             <option value="">-- Select State --</option>
                                                             <option value="ANDHRA PRADESH" <?= $row['state'] == 'ANDHRA PRADESH' ? 'selected' : '' ?>>ANDHRA PRADESH (आंध्र प्रदेश)</option>
                                                             <option value="ARUNACHAL PRADESH" <?= $row['state'] == 'ARUNACHAL PRADESH' ? 'selected' : '' ?>>ARUNACHAL PRADESH (अरुणाचल प्रदेश)</option>
@@ -186,17 +346,17 @@ if (isset($_GET['id'])) {
                                                     </div>
 
 
-                                                    <?php
-                                                    $fee_sql = "SELECT * from services where service_name = 'Learning licence'";
-                                                    $fee_data = mysqli_query($conn, $fee_sql);
-                                                    if (mysqli_num_rows($fee_data) > 0) {
-                                                        $row = mysqli_fetch_assoc($fee_data);
-                                                    }
-                                                    ?>
+                                                    <!-- <?php
+                                                            $fee_sql = "SELECT * from services where service_name = 'Learning_licence'";
+                                                            $fee_data = mysqli_query($conn, $fee_sql);
+                                                            if (mysqli_num_rows($fee_data) > 0) {
+                                                                $row = mysqli_fetch_assoc($fee_data);
+                                                            }
+                                                            ?>
                                                     <div class=" col-12 ml-2">
                                                         <h5 class="text-warning ">Application Fee: ₹<?= $row['service_charge'] ?></h5>
                                                         <input type="hidden" name="fee" value="100">
-                                                    </div>
+                                                    </div> -->
 
 
                                                     <!-- <div class="col-12 ml-2">

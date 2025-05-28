@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 14, 2025 at 09:30 AM
+-- Generation Time: May 20, 2025 at 12:14 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -39,13 +39,15 @@ CREATE TABLE `aadhar` (
   `state` varchar(20) NOT NULL,
   `city` varchar(20) NOT NULL,
   `pin_code` varchar(20) NOT NULL,
-  `dob` varchar(20) NOT NULL,
+  `dob` text NOT NULL,
   `birth_address` varchar(40) NOT NULL,
   `gender` varchar(10) NOT NULL,
   `address` text NOT NULL,
+  `phone` int(20) NOT NULL,
   `image` varchar(100) NOT NULL,
   `language` varchar(20) NOT NULL,
   `name_local_language` varchar(20) NOT NULL,
+  `gender_local` varchar(40) NOT NULL,
   `address_local_language` varchar(30) NOT NULL,
   `created_at` timestamp(6) NOT NULL DEFAULT current_timestamp(6) ON UPDATE current_timestamp(6),
   `status` enum('Pending','Process','Approved','Rejected') DEFAULT 'Pending',
@@ -71,7 +73,7 @@ CREATE TABLE `admin_wallet` (
 --
 
 INSERT INTO `admin_wallet` (`id`, `user_id`, `amount`, `created_at`) VALUES
-(2, 1, 1935.00, '2025-05-13 12:28:14');
+(4, 2, 0.00, '2025-05-20 09:50:42');
 
 -- --------------------------------------------------------
 
@@ -87,6 +89,7 @@ CREATE TABLE `birth_certificate` (
   `district` varchar(50) NOT NULL,
   `name` varchar(50) NOT NULL,
   `aadhar_number` int(50) NOT NULL,
+  `phone` int(20) NOT NULL,
   `gender` varchar(10) NOT NULL,
   `dob` varchar(20) NOT NULL,
   `fName` varchar(50) NOT NULL,
@@ -114,9 +117,10 @@ CREATE TABLE `licence` (
   `district` varchar(50) NOT NULL,
   `application_no` varchar(20) NOT NULL,
   `dob` date NOT NULL,
+  `phone` int(20) NOT NULL,
   `password` varchar(20) NOT NULL,
   `created_at` timestamp(6) NOT NULL DEFAULT current_timestamp(6) ON UPDATE current_timestamp(6),
-  `status` enum('Pending','In Review','Approved','Rejected','Issued') DEFAULT 'Pending',
+  `status` enum('Pending','Process','Approved','Rejected') DEFAULT 'Pending',
   `remark` varchar(255) NOT NULL,
   `certificate_file` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -135,6 +139,7 @@ CREATE TABLE `pan` (
   `name` varchar(50) NOT NULL,
   `fName` varchar(50) NOT NULL,
   `dob` varchar(30) NOT NULL,
+  `phone` int(40) NOT NULL,
   `gender` varchar(10) NOT NULL,
   `image` varchar(20) NOT NULL,
   `sign_image` varchar(20) NOT NULL,
@@ -158,21 +163,13 @@ CREATE TABLE `pm_kissan` (
   `reg_no` int(20) NOT NULL,
   `aadhar_no` int(20) NOT NULL,
   `name` varchar(50) NOT NULL,
+  `phone` int(20) NOT NULL,
   `created_at` timestamp(6) NOT NULL DEFAULT current_timestamp(6) ON UPDATE current_timestamp(6),
   `status` enum('Pending','Process','Approved','Rejected') DEFAULT 'Pending',
   `application_no` varchar(20) NOT NULL,
   `remark` varchar(255) NOT NULL,
   `certificate_file` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `pm_kissan`
---
-
-INSERT INTO `pm_kissan` (`id`, `user_id`, `state`, `district`, `reg_no`, `aadhar_no`, `name`, `created_at`, `status`, `application_no`, `remark`, `certificate_file`) VALUES
-(1, 2, 'UTTAR PRADESH', '', 2147483647, 2147483640, 'rajan', '2025-05-14 07:02:06.682107', 'Process', '0', 'ram', '../assets/certificates/1747200415_1747161292_AdminLTE 2  Dashboard (4).pdf'),
-(3, 0, 'Uttar Pradesh', 'MEERUT', 2147483647, 2147483647, 'Myles Fry', '2025-05-10 08:36:36.477782', 'Pending', 'PM_APP20250002', '', ''),
-(4, 0, 'Uttar Pradesh', 'AMBEDKAR NAGAR', 119, 260, 'Jescie Fowler', '2025-05-13 10:59:50.900070', 'Pending', 'PM_APP20250003', '', '');
 
 -- --------------------------------------------------------
 
@@ -185,12 +182,13 @@ CREATE TABLE `ration` (
   `user_id` int(20) NOT NULL,
   `ration_number` varchar(50) NOT NULL,
   `applicant_name` varchar(40) NOT NULL,
+  `phone` int(20) NOT NULL,
   `state` varchar(40) NOT NULL,
   `district` varchar(40) NOT NULL,
   `remark` varchar(255) NOT NULL,
   `certificate_file` varchar(255) NOT NULL,
   `created_at` timestamp(6) NOT NULL DEFAULT current_timestamp(6) ON UPDATE current_timestamp(6),
-  `status` enum('pending','Process','approved','rejected') DEFAULT 'pending'
+  `status` enum('Pending','Process','Approved','Rejected') DEFAULT 'Pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -212,12 +210,13 @@ CREATE TABLE `services` (
 
 INSERT INTO `services` (`id`, `service_name`, `service_charge`, `created`) VALUES
 (2, 'Birth_certificate', '250', '2025-05-13 08:11:20.842615'),
-(3, 'Learning licence', '100', '2025-05-13 08:12:07.563696'),
-(4, 'Ration to Aadhar', '60', '2025-05-13 08:12:29.945247'),
-(5, 'PM kishan seading', '500', '2025-05-13 08:13:09.563331'),
-(6, 'aadhar', '5', '2025-05-13 08:13:28.758894'),
+(3, 'Learning_ licence', '100', '2025-05-19 12:15:43.805426'),
+(4, 'ration_to_aadhar', '60', '2025-05-19 11:56:50.814624'),
+(5, 'pm_kissan_seeding', '300', '2025-05-20 07:40:46.763931'),
+(6, 'aadhar', '10', '2025-05-20 07:40:20.521603'),
 (7, 'Aadhar to PAN', '15', '2025-05-13 08:14:09.521249'),
-(8, 'Pan', '5', '2025-05-13 08:14:53.662340');
+(8, 'Pan', '10', '2025-05-20 07:40:13.687450'),
+(9, 'membership_amount', '49', '2025-05-20 09:53:02.417086');
 
 -- --------------------------------------------------------
 
@@ -229,6 +228,7 @@ CREATE TABLE `total_wallet_balence` (
   `id` int(20) NOT NULL,
   `user_id` bigint(50) NOT NULL,
   `wallet_balence` decimal(20,2) NOT NULL DEFAULT 0.00,
+  `name` varchar(240) NOT NULL,
   `Created_At` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -236,8 +236,8 @@ CREATE TABLE `total_wallet_balence` (
 -- Dumping data for table `total_wallet_balence`
 --
 
-INSERT INTO `total_wallet_balence` (`id`, `user_id`, `wallet_balence`, `Created_At`) VALUES
-(7, 2, 315.00, '2025-05-13 12:28:14');
+INSERT INTO `total_wallet_balence` (`id`, `user_id`, `wallet_balence`, `name`, `Created_At`) VALUES
+(7, 2, 0.00, 'Rajan Kushwaha', '2025-05-20 09:53:12');
 
 -- --------------------------------------------------------
 
@@ -251,11 +251,11 @@ CREATE TABLE `user` (
   `email` varchar(50) NOT NULL,
   `password` varchar(10) NOT NULL,
   `phone` varchar(20) NOT NULL,
-  `amount` decimal(20,2) NOT NULL DEFAULT 0.00,
-  `mode` varchar(100) DEFAULT NULL,
-  `screenshot` varchar(255) DEFAULT NULL,
-  `transaction_id` varchar(200) DEFAULT NULL,
+  `district` varchar(100) NOT NULL,
+  `state` varchar(100) NOT NULL,
   `role` int(11) NOT NULL DEFAULT 0,
+  `membership_amount` bigint(50) DEFAULT NULL,
+  `transaction_id` varchar(40) NOT NULL,
   `created_At` timestamp(6) NOT NULL DEFAULT current_timestamp(6) ON UPDATE current_timestamp(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -263,11 +263,8 @@ CREATE TABLE `user` (
 -- Dumping data for table `user`
 --
 
-INSERT INTO `user` (`id`, `name`, `email`, `password`, `phone`, `amount`, `mode`, `screenshot`, `transaction_id`, `role`, `created_At`) VALUES
-(1, 'admin', 'admin@gmail.com', '12345', '123456', 0.00, NULL, NULL, NULL, 1, '2025-05-12 06:31:20.235167'),
-(2, 'Rajan Kushwaha', 'rajan25kushwaha@gmail.com', '12345', '0', 2600.00, 'upi', '1747116845bing_generated_qrcode.png', 'hjwgjq45454', 0, '2025-05-13 06:14:05.955689'),
-(3, 'Rajan ', 'rajan@gmail.com', '123456', '', 0.00, NULL, NULL, NULL, 0, '2025-05-12 05:37:02.814564'),
-(4, 'newError', 'user@gmail.com', '123456', '1234567890', 0.00, NULL, NULL, NULL, 0, '2025-05-12 05:37:51.561855');
+INSERT INTO `user` (`id`, `name`, `email`, `password`, `phone`, `district`, `state`, `role`, `membership_amount`, `transaction_id`, `created_At`) VALUES
+(1, 'admin', 'admin@gmail.com', '12345', '123456', '', '', 1, 0, '', '2025-05-12 06:31:20.235167');
 
 -- --------------------------------------------------------
 
@@ -278,21 +275,30 @@ INSERT INTO `user` (`id`, `name`, `email`, `password`, `phone`, `amount`, `mode`
 CREATE TABLE `wallet` (
   `id` int(20) NOT NULL,
   `transaction_id` varchar(100) NOT NULL,
+  `name` varchar(245) DEFAULT NULL,
   `amount` int(20) NOT NULL,
   `payment_mode` varchar(40) NOT NULL,
   `user_id` int(20) NOT NULL,
-  `screenshot` varchar(225) NOT NULL,
+  `email` varchar(201) DEFAULT NULL,
   `created_at` timestamp(6) NOT NULL DEFAULT current_timestamp(6) ON UPDATE current_timestamp(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `wallet`
+-- Table structure for table `wallet_transaction_history`
 --
 
-INSERT INTO `wallet` (`id`, `transaction_id`, `amount`, `payment_mode`, `user_id`, `screenshot`, `created_at`) VALUES
-(16, ' nfvfvfbvbfvbvf', 1000, 'upi', 2, '1747133153bing_generated_qrcode.png', '2025-05-13 10:45:53.185268'),
-(17, ' GFGGFGFG', 500, 'upi', 2, '1747133186bing_generated_qrcode.png', '2025-05-13 10:46:27.001948'),
-(18, '1jqgqraj45ssd', 1000, 'upi', 2, '1747134053bing_generated_qrcode.png', '2025-05-13 11:00:53.644201');
+CREATE TABLE `wallet_transaction_history` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `available_balance` decimal(10,2) NOT NULL,
+  `purpose` varchar(255) NOT NULL,
+  `type` enum('debit','credit') NOT NULL,
+  `status` varchar(50) DEFAULT 'success',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -365,6 +371,12 @@ ALTER TABLE `wallet`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `wallet_transaction_history`
+--
+ALTER TABLE `wallet_transaction_history`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -378,7 +390,7 @@ ALTER TABLE `aadhar`
 -- AUTO_INCREMENT for table `admin_wallet`
 --
 ALTER TABLE `admin_wallet`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `birth_certificate`
@@ -402,7 +414,7 @@ ALTER TABLE `pan`
 -- AUTO_INCREMENT for table `pm_kissan`
 --
 ALTER TABLE `pm_kissan`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `ration`
@@ -414,7 +426,7 @@ ALTER TABLE `ration`
 -- AUTO_INCREMENT for table `services`
 --
 ALTER TABLE `services`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `total_wallet_balence`
@@ -426,13 +438,19 @@ ALTER TABLE `total_wallet_balence`
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `wallet`
 --
 ALTER TABLE `wallet`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `wallet_transaction_history`
+--
+ALTER TABLE `wallet_transaction_history`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

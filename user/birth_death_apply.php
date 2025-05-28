@@ -9,6 +9,8 @@ if ($_SESSION['role'] !== '0' && $_SESSION['role'] !== 0) {
     die("Access Denied!");
 }
 $id = $_SESSION['id'];
+
+// echo $name;
 include('config.php');
 include 'layout/header.php';
 
@@ -89,8 +91,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 
             // Wallet History Insert Code
+            $name = $_SESSION['name'];
             $purpose = 'Birth Certificate';
-            $type = 'debit';
+            $type = 'credit';
             $status = 1;
             // $transaction_id = 'TXN' . rand(10000, 99999);
 
@@ -99,16 +102,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $new_balance = $newBalRow['wallet_balence'];
 
             $insertLog = "INSERT INTO wallet_transaction_history 
-             (user_id, amount, available_balance, purpose, type, status)
-             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status)";
+             (user_id, amount, available_balance, purpose, type, status, name)
+             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status, '$name')";
             mysqli_query($conn, $insertLog);
 
 
-            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis' WHERE user_id = $id";
+            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis'";
             if (mysqli_query($conn, $minusWalletAdmin)) {
                 // Green API Details
-                $idInstance = "7105245150";
-                $apiToken = "5930752ee220440da365847180fbf93eba31bf1fe50947f4a2";
+                $idInstance = "7105245778";
+                $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
                 $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
 
                 // -----------------------------
@@ -134,15 +137,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // -----------------------------
                 // ✅ 2. Message to Admin
                 // -----------------------------
-                $adminNumber = "918303293043@c.us";
+                $adminNumber = "917266956455@c.us";
                 $messageToAdmin =
-                    "Birth Cirtificate Application Received:\n\n" .
-                    "Name: $name\n" .
-                    "Phone: $phone\n" .
-                    "DOB: $dob\n" .
-                    "Address: $address\n" .
-                    "Aadhaar No: $aadhar_number\n" .
-                    "Registration Fee: ₹$chargeis\n";
+                    "Birth Cirtificate Application Received:\n\n\n" .
+                    "NAME: $name\n\n" .
+                    "GENDER: $gender\n\n" .
+                    "DATE OF BIRTH: $dob\n\n" .
+                    "AADHAR NUMBER: $aadhar_number\n\n\n" .
+                    "FATHER NAME: $fName\n\n" .
+                    "FATHER AADHAR: $fAadhar\n\n\n" .
+                    "MOTHER NAME: $mName\n\n" .
+                    "MOTHER AADHAR: $mAadhar\n\n\n" .
+                    "ADDRESS: $address, $state, $district";
 
                 $dataAdmin = [
                     "chatId" => $adminNumber,
@@ -161,6 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 echo "
         <script>
             alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+            window.location.href = 'birth_death_apply_list.php';
         </script>
     ";
             } else {
@@ -283,7 +290,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <label for="applicant_aadhar">आधार नंबर / ADHAR NUMBER*</label>
                             <input type="text" oninput="this.value = this.value.toUpperCase()" name="aadhar_number" class="form-control" required><br>
                             <label for="phone">PHONE NUMBER*</label>
-                            <input type="text" name="phone" class="form-control" required><br>
+                            <input type="number" name="phone" class="form-control" required><br>
 
                             <label for="gender">लिंग / Gender*</label>
                             <select name="gender" class="form-control" required>
@@ -332,7 +339,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <input type="hidden" name="fee" value="250">
                             </div>
                             <div class="col-12">
-                                <button type="submit" class="btn btn-primary px-5">Apply</button>
+                                <button type="submit" class="btn btn-primary px-5" onclick="window.location.href='birth_death_apply.php'">Apply</button>
                             </div>
                         </form>
                     </div>

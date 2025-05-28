@@ -51,8 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if (mysqli_query($conn, $sql)) {
         // Green API Details
-        $idInstance = "7105245150";
-        $apiToken = "5930752ee220440da365847180fbf93eba31bf1fe50947f4a2";
+        $idInstance = "7105245778";
+        $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
         $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
 
         // -----------------------------
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // -----------------------------
         // ✅ 2. Message to Admin
         // -----------------------------
-        $adminNumber = "918303293043@c.us";
+        $adminNumber = "917266956455@c.us";
         $messageToAdmin =
             "Birth Cirtificate Application $status is:\n\n" .
             "name: $name\n\n" .

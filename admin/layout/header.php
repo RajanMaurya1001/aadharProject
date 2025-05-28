@@ -31,7 +31,7 @@
     <link rel="stylesheet" href="../assets/css/header-colors.css" />
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
-    <title>Welcome TO - Psprint</title>
+    <title>Welcome TO - Instant Online Solution</title>
 
     <!--start header -->
     <style>
@@ -145,10 +145,10 @@
         <div class="sidebar-wrapper" data-simplebar="true">
             <div class="sidebar-header">
                 <div>
-                    <img src="../assets/images/logo.png" class="logo-icon" alt="logo icon">
+                    <img src="../assets/images/logo.gif" class="logo-icon" alt="logo icon" height="20px" width="70px">
                 </div>
                 <div>
-                    <h4 class="logo-text">PSPRINT</h4>
+                    <h5 class="logo-text" style="font-size: 16px; padding-left:20px;">Instant Online Solution</h5>
                 </div>
                 <div class="toggle-icon ms-auto"><i class='bx bx-arrow-to-left'></i>
                 </div>
@@ -304,6 +304,14 @@
                         <div class="parent-icon">
                         </div>
                         <div class="menu-title">Services</div>
+                    </a>
+
+                </li>
+                <li>
+                    <a href="users.php" class="">
+                        <div class="parent-icon">
+                        </div>
+                        <div class="menu-title">Users</div>
                     </a>
 
                 </li>

@@ -28,12 +28,6 @@ include 'layout/header.php';
 </div>
 
 
-<!-- Datatable initialization -->
-<!-- <script>
-    $(document).ready(() => {
-        $('#default-datatable').DataTable();
-    });
-</script> -->
 
 <!--start page wrapper -->
 <div class="page-wrapper">
@@ -68,14 +62,14 @@ include 'layout/header.php';
                                                                 <th style="color:white; text-align:center;">Status</th>
                                                                 <th class="text-center">Remark</th>
                                                                 <th class="text-center">Action</th>
-                                                                <th class="text-center">File</th>
+                                                                <th class="text-center">finel submit</th>
 
                                                             </tr>
                                                         </thead>
                                                         <!-- Table data -->
                                                         <tbody>
                                                             <?php
-                                                            $sql = "select * from pm_kissan";
+                                                            $sql = "select * from pm_kissan where final_submit = 0";
                                                             $data = mysqli_query($conn, $sql);
                                                             if (mysqli_num_rows($data) > 0) {
                                                                 while ($row = mysqli_fetch_assoc($data)) {
@@ -89,17 +83,10 @@ include 'layout/header.php';
                                                                         <td class="name"><?= $row['name'] ?></td>
                                                                         <td class="user_id" style="display: none;"><?= $row['user_id'] ?></td>
                                                                         <td class="phone" style="display: none;"><?= $row['phone'] ?></td>
-                                                                        <td class="text-center">
-                                                                            <select class="form-select form-select-sm status-dropdown" data-id="<?= $row['id'] ?>">
-                                                                                <option value="Pending" <?= $row['status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
-                                                                                <option value="Process" <?= $row['status'] == 'Process' ? 'selected' : '' ?>>Process</option>
-                                                                                <option value="Approved" <?= $row['status'] == 'Approved' ? 'selected' : '' ?>>Approved</option>
-                                                                                <option value="Rejected" <?= $row['status'] == 'Rejected' ? 'selected' : '' ?>>Rejected</option>
-                                                                            </select>
-                                                                        </td>
-                                                                        <td>
-                                                                            <textarea class="remark-textarea" data-id="<?= $row['id']; ?>" rows="2"><?= htmlspecialchars($row['remark']); ?></textarea>
-                                                                        </td>
+                                                                        <td class="text-center"><?= $row['status'] ?></td>
+
+
+                                                                        <td class="text-center"><?= $row['remark'] ?></td>
                                                                         <td>
                                                                             <div class="d-flex flex-column">
                                                                                 <a href="updatePm.php?id=<?= $row['id'] ?>">
@@ -110,13 +97,35 @@ include 'layout/header.php';
                                                                                 </a>
                                                                             </div>
                                                                         </td>
+
+
+
+
                                                                         <td>
-                                                                            <form action="upload_pmFile.php" method="POST" enctype="multipart/form-data">
-                                                                                <input type="hidden" name="id" value="<?= $row['id']; ?>">
-                                                                                <input type="file" name="certificate" accept=".pdf,.jpg,.jpeg,.png" required>
-                                                                                <button type="submit">Upload</button>
-                                                                            </form>
+                                                                            <?php
+                                                                            $status = $row['status'];
+                                                                            $certificate = $row['certificate_file'];
+                                                                            $id = $row['id'];
+
+                                                                            $enableButton = false;
+
+                                                                            if ($status === 'Rejected') {
+                                                                                $enableButton = true;
+                                                                            } elseif ($status === 'Approved' && !empty($certificate)) {
+                                                                                $enableButton = true;
+                                                                            }
+
+                                                                            if ($enableButton):
+                                                                            ?>
+                                                                                <form method="POST" action="pmKishan_submit.php" onsubmit="return confirm('Are you sure you want to finalize this?');">
+                                                                                    <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                                                                    <button type="submit" name="pmKishan_submit" style="background-color: red;">Final Submit</button>
+                                                                                </form>
+                                                                            <?php else: ?>
+                                                                                <button disabled style="background-color: gray;">Final Submit</button>
+                                                                            <?php endif; ?>
                                                                         </td>
+
                                                                     </tr>
                                                             <?php
                                                                 }
@@ -142,7 +151,7 @@ include 'layout/header.php';
 
 
 
-//for status update
+<!-- //for status update -->
 <script>
     // jQuery AJAX Code (header में jQuery include करें)
     $(document).ready(function() {
@@ -209,6 +218,40 @@ include 'layout/header.php';
             };
 
             xhr.send("id=" + encodeURIComponent(id) + "&remark=" + encodeURIComponent(remark));
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        $('form[action="upload_pmFile.php"]').on('submit', function(e) {
+            e.preventDefault(); // Prevent default form submit
+
+            const form = $(this)[0];
+            const formData = new FormData(form); // Create FormData object
+            const row = $(this).closest('tr');
+
+            // Confirm before submitting
+            if (!confirm("Are you sure you want to upload and finalize this application?")) return;
+
+            $.ajax({
+                url: 'upload_pmFile.php',
+                type: 'POST',
+                data: formData,
+                processData: false, // Important
+                contentType: false, // Important
+                success: function(response) {
+                    console.log("Response from server:", JSON.stringify(response));
+                    alert("Server says: " + response);
+
+                    if (response.trim() === "success") {
+                        alert("Certificate upload ho gaya ✅");
+                        row.hide();
+                    } else {
+                        alert("Upload failed: " + response);
+                    }
+                }
+            });
         });
     });
 </script>

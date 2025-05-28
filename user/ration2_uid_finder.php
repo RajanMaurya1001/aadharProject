@@ -9,6 +9,7 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['role'])) {
 if ($_SESSION['role'] !== '0' && $_SESSION['role'] !== 0) {
     die("Access Denied!");
 }
+$id = $_SESSION['id'];
 include('config.php');
 include 'layout/header.php';
 ?>
@@ -17,7 +18,8 @@ include 'layout/header.php';
 
 
 <?php
-$getServices = "Select * from services where service_name = 'Ration to Aadhar'";
+$chargeis = 0;
+$getServices = "Select * from services where service_name = 'ration_to_aadhar'";
 $serviceData = mysqli_query($conn, $getServices);
 if (mysqli_num_rows($serviceData) > 0) {
     $serviceRow = mysqli_fetch_assoc($serviceData);
@@ -30,9 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $applicant_name = $_POST['applicant_name'];
     $state = $_POST['state'];
     $district = $_POST['district'];
-    $phone  = $_POST['phone'];
+    $phone = $_POST['phone'];
 
-    $sql = "INSERT INTO ration(ration_number, applicant_name, state, district, phone) values('$ration_number', '$applicant_name', '$state', '$district', '$phone')";
+    $sql = "INSERT INTO ration(ration_number, applicant_name, state, district, phone, user_id) values('$ration_number', '$applicant_name', '$state', '$district', '$phone', '$id')";
     if (mysqli_query($conn, $sql)) {
         // Step 1: Check Wallet Balance
         $checkWalletQuery = "SELECT wallet_balence FROM total_wallet_balence WHERE user_id = $id";
@@ -40,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($checkWalletResult && mysqli_num_rows($checkWalletResult) > 0) {
             $row = mysqli_fetch_assoc($checkWalletResult);
-            $walletBalence = (float)$row['wallet_balence'];
+            $walletBalence = (float) $row['wallet_balence'];
 
             if ($walletBalence <= 0) {
                 echo "<script>
@@ -55,13 +57,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </script>";
             exit;
         }
-        $minusWalletUser = "UPDATE total_wallet_balence SET wallet_balence = wallet_balence - '$chargeis' WHERE user_id = $id";
+        $minusWalletUser = "UPDATE total_wallet_balence SET wallet_balence = wallet_balence - $chargeis WHERE user_id = $id";
         if (mysqli_query($conn, $minusWalletUser)) {
 
 
             // Wallet History Insert Code
+            $name = $_SESSION['name'];
             $purpose = 'Ration Details';
-            $type = 'debit';
+            $type = 'credit';
             $status = 1;
             // $transaction_id = 'TXN' . rand(10000, 99999);
 
@@ -70,23 +73,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $new_balance = $newBalRow['wallet_balence'];
 
             $insertLog = "INSERT INTO wallet_transaction_history 
-             (user_id, amount, available_balance, purpose, type, status)
-             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status)";
+             (user_id, amount, available_balance, purpose, type, status, name)
+             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status, '$name')";
             mysqli_query($conn, $insertLog);
 
 
-            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis' WHERE user_id = $id";
+            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + $chargeis";
             if (mysqli_query($conn, $minusWalletAdmin)) {
                 // Green API Details
-                $idInstance = "7105242669";
-                $apiToken = "dfb24b0b4e784ed4814e3a780e2ea43d01b49830e9a94562b2";
+                $idInstance = "7105245778";
+                $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
                 $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
 
                 // -----------------------------
                 // ✅ 1. Message to Applicant
                 // -----------------------------
                 $applicantNumber = "91" . $phone . "@c.us";
-                $messageToUser = "Hello $name, your application for the Ration to Aadhar has been submitted successfully. Thank you!";
+                $messageToUser = "Hello $applicant_name, your application for the Ration to Aadhar has been submitted successfully. Thank you!";
 
                 $dataUser = [
                     "chatId" => $applicantNumber,
@@ -105,16 +108,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // -----------------------------
                 // ✅ 2. Message to Admin
                 // -----------------------------
-                $adminNumber = "918303293043@c.us";
+                $adminNumber = "917266956455@c.us";
                 $messageToAdmin =
-                    "Ration to Aadhar Application Received:\n\n" .
-                    "Applicant Name: $applicant_name\n" .
-                    "Phone: $phone\n" .
-                    "Ration Card Number: $ration_number\n" .
-                    "District: $district\n" .
-                    "State: $state\n" .
-                    "Registration Fee: ₹$chargeis\n";
-
+                    "Ration to Aadhar Application Received:\n\n\n" .
+                    "APPLICANT NAME: $applicant_name\n\n" .
+                    "RATION CARD NUMBER: $ration_number\n\n" .
+                    "DISTRICT: $district\n\n" .
+                    "STATE: $state\n";
                 $dataAdmin = [
                     "chatId" => $adminNumber,
                     "message" => $messageToAdmin
@@ -132,6 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo "
         <script>
             alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+            window.location.href='ration2_uid_finder_list.php';
         </script>
     ";
             } else {
@@ -171,7 +172,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div class="card card-default">
                                     <div class="card-header bg-warning">
                                         <div class="card-title">
-                                            <h3><strong>RATION TO AADHAAR FIND INSTANT Only ( Uttar Pradesh )</strong></h3>
+                                            <h3><strong>RATION TO AADHAAR FIND INSTANT Only ( Uttar Pradesh )</strong>
+                                            </h3>
                                         </div>
                                     </div>
                                 </div>
@@ -182,20 +184,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <div class="card-body">
                                                 <div class="col-md-12">
                                                     <div class="form-group">
-                                                        <label class="card-title" for="ration_number">Ration Number <span class="required-mark text-red" style="color:red;">*</span></label>
-                                                        <input type="text" class="form-control" name="ration_number" id="ration_number" placeholder="Enter Ration Number">
+                                                        <label class="card-title" for="ration_number">Ration Number
+                                                            <span class="required-mark text-red"
+                                                                style="color:red;">*</span></label>
+                                                        <input type="text" class="form-control" name="ration_number"
+                                                            id="ration_number" placeholder="Enter Ration Number">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-12">
                                                     <div class="form-group">
-                                                        <label class="card-title" for="ration_number">Applicant Name <span class="required-mark text-red" style="color:red;">*</span></label>
-                                                        <input type="text" class="form-control" name="applicant_name" id="ration_number" placeholder="Enter Name">
+                                                        <label class="card-title" for="ration_number">Applicant Name
+                                                            <span class="required-mark text-red"
+                                                                style="color:red;">*</span></label>
+                                                        <input type="text" class="form-control" name="applicant_name"
+                                                            id="ration_number" placeholder="Enter Name">
                                                     </div>
                                                 </div>
 
                                                 <div class="col-md-12">
                                                     <div class="form-group">
-                                                        <label class="card-title" for="phone">Phone Number<span class="required-mark text-red" style="color:red;">*</span></label>
+                                                        <label class="card-title" for="phone">Phone Number<span
+                                                                class="required-mark text-red"
+                                                                style="color:red;">*</span></label>
                                                         <input type="text" class="form-control" name="phone" id="phone">
                                                     </div>
                                                 </div>
@@ -227,7 +237,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 </div>
                                                 <div class="row row-sm mg-t-20">
                                                     <div class="col">
-                                                        <button type="submit" class="btn btn-primary w-100"><i class="fa fa-check-circle"></i> Submit</button>
+                                                        <button type="submit" class="btn btn-primary w-100" onclick="window.location.href='ration2_uid_finder.php'"><i
+                                                                class="fa fa-check-circle"></i> Submit</button>
                                                     </div>
                                                 </div>
                                         </form>

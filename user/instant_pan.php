@@ -70,7 +70,7 @@ include 'layout/header.php';
 
                                 </div>
                                 <div class="col-12">
-                                    <button type="submit" class="btn btn-primary px-5">Verify Now</button>
+                                    <button type="submit" class="btn btn-primary px-5" onclick="window.location.href='instant_pan.php'">Verify Now</button>
                                 </div>
                                 <!-- Result Section -->
                             </form>

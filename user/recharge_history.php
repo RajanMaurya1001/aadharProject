@@ -33,6 +33,7 @@ include 'layout/header.php';
                                 <th class="text-center" style="width: 10px;">Amount</th>
                                 <th class="text-center">TXN ID</th>
                                 <th class="text-center">TXN date</th>
+                                <!-- <th class="text-center">TXN date</th> -->
                                 <!-- <th class="text-center">Action</th> -->
                             </tr>
                         </thead>
@@ -41,6 +42,7 @@ include 'layout/header.php';
                             <?php
 
                             $id = $_SESSION['id'];
+                            $name = $_SESSION['name'];
                             include('config.php');
                             $sql = "select * from wallet where user_id=$id";
                             $data = mysqli_query($conn, $sql);
@@ -52,6 +54,7 @@ include 'layout/header.php';
                                     <tr>
                                         <td class="text-center"><?= $row['id'] ?></td>
                                         <td class="text-center"><?= $row['amount'] ?></td>
+                                        <!-- <td class="text-center"><?= $row['name'] ?></td> -->
                                         <td class="text-center">
                                             <?= $row['transaction_id'] ?>
                                         </td>

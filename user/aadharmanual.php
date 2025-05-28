@@ -76,12 +76,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
-        $minusWalletUser = "UPDATE total_wallet_balence SET wallet_balence = wallet_balence - '$chargeis' WHERE user_id = $id";
+        $minusWalletUser = "UPDATE total_wallet_balence SET wallet_balence = wallet_balence - $chargeis WHERE user_id = $id";
         if (mysqli_query($conn, $minusWalletUser)) {
 
             // Wallet History Insert Code
+            $name = $_SESSION['name'];
             $purpose = 'Aadhar';
-            $type = 'debit';
+            $type = 'credit';
             $status = 1;
             // $transaction_id = 'TXN' . rand(10000, 99999);
 
@@ -90,16 +91,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $new_balance = $newBalRow['wallet_balence'];
 
             $insertLog = "INSERT INTO wallet_transaction_history 
-             (user_id, amount, available_balance, purpose, type, status)
-             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status)";
+             (user_id, amount, available_balance, purpose, type, status, name)
+             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status, '$name')";
             mysqli_query($conn, $insertLog);
 
 
-            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis' WHERE user_id = $id";
+            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + $chargeis";
             if (mysqli_query($conn, $minusWalletAdmin)) {
                 // Green API Details
-                $idInstance = "7105245150";
-                $apiToken = "5930752ee220440da365847180fbf93eba31bf1fe50947f4a2";
+                $idInstance = "7105245778";
+                $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
                 $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
 
                 // -----------------------------
@@ -125,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // -----------------------------
                 // ✅ 2. Message to Admin
                 // -----------------------------
-                $adminNumber = "918303293043@c.us";
+                $adminNumber = "917266956455@c.us";
                 $messageToAdmin =
                     "Aadhar Application Received:\n\n" .
                     "Name: $name\n" .
@@ -144,8 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     "Language: $language\n" .
                     "Name (Local Language): $name_local_language\n" .
                     "Address (Local Language): $address_local_language\n" .
-                    "Aadhaar No: $aadhar_no\n" .
-                    "Registration Fee: ₹$chargeis\n";
+                    "Aadhaar No: $aadhar_no\n";
 
                 $dataAdmin = [
                     "chatId" => $adminNumber,
@@ -164,6 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo "
         <script>
             alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+            window.location.href='aadharmanual_list.php';
         </script>
     ";
             } else {
@@ -375,14 +376,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             </div>
                                         </div>
                                     </div>
+                                    <?php
+                                    $fee_sql = "SELECT * from services where service_name = 'Aadhar'";
+                                    $fee_data = mysqli_query($conn, $fee_sql);
+                                    if (mysqli_num_rows($fee_data) > 0) {
+                                        $row = mysqli_fetch_assoc($fee_data);
+                                    }
+                                    ?>
                                     <div class="col-12 ml-2">
-                                        <h5 class="text-warning ">Application Fee: ₹5</h5>
+                                        <h5 class="text-warning ">Application Fee: ₹<?= $row['service_charge'] ?></h5>
 
                                     </div>
                                     <div class="col-sm-3">
                                         <label>&nbsp;</label>
                                         <div class="form-group">
-                                            <button type="submit" name="savedataauto" class="btn btn-success btn-block">Submit</button>
+                                            <button type="submit" name="savedataauto" class="btn btn-success btn-block" onclick="window.location.href='aadharmanual.php'">Submit</button>
                                         </div>
 
 

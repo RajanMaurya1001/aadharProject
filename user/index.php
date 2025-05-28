@@ -1,5 +1,4 @@
 <?php
-
 session_start();
 if (!isset($_SESSION['id']) || !isset($_SESSION['role'])) {
     header("Location: ../login.php");
@@ -11,6 +10,8 @@ if ($_SESSION['role'] !== '0' && $_SESSION['role'] !== 0) {
 }
 
 include 'layout/header.php';
+include 'config.php';
+// include('../assets/config/config.php');
 ?>
 
 
@@ -464,12 +465,12 @@ include 'layout/header.php';
                     </a> -->
 
 
-            <a href="https://psprint.xyz/admin/Pan_Advance_Axen.php">
+            <a href="pan_manual.php">
                 <div class="col pointer">
                     <div class="card radius-10 bg-gradient-ohhappiness">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
-                                <h5 class="mb-0 text-white">₹5</h5>
+                                <h5 class="mb-0 text-white">₹10</h5>
                                 <div class="ms-auto">
                                     <i class='bx bx-id-card fs-3 text-white'></i>
                                 </div>
@@ -490,12 +491,12 @@ include 'layout/header.php';
             </a>
 
 
-            <a href="https://psprint.xyz/admin/aadharmanual.php">
+            <a href="aadharmanual.php">
                 <div class="col pointer">
                     <div class="card radius-10 bg-gradient-deepblue">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
-                                <h5 class="mb-0 text-white">₹5</h5>
+                                <h5 class="mb-0 text-white">₹10</h5>
                                 <div class="ms-auto">
                                     <i class='bx bx-id-card fs-3 text-white'></i>
                                 </div>

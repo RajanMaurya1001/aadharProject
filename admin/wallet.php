@@ -8,6 +8,8 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['role'])) {
 if ($_SESSION['role'] !== '1' && $_SESSION['role'] !== 1) {
     die("Access Denied!");
 }
+
+
 include('config.php');
 include 'layout/header.php';
 ?>
@@ -36,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Insert wallet transaction
         $insert_transaction_sql = "INSERT INTO wallet (user_id, transaction_id, amount, screenshot, payment_mode) 
-                               VALUES ($id, '$transaction_id', '$amount', '$filename', '$payment_mode')";
+                                VALUES ($id, '$transaction_id', '$amount', '$filename', '$payment_mode')";
         if (mysqli_query($conn, $insert_transaction_sql)) {
             echo "<script>alert('Balance Added Successfully');
             window.location.href = 'index.php';

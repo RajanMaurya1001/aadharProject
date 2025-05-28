@@ -12,7 +12,11 @@ if ($_SESSION['role'] !== '0' && $_SESSION['role'] !== 0) {
 
 $id = $_SESSION['id'];
 $email = $_SESSION['email'];
+
 $name = $_SESSION['name'];
+// echo $name;
+// die();
+
 $phone = isset($_SESSION['mobile_number']) ? $_SESSION['mobile_number'] : "";
 // print_r($_SESSION);
 include('config.php');
@@ -81,6 +85,22 @@ if ($result && mysqli_num_rows($result) > 0) {
                             <hr />
 
                             <div class="row mb-3">
+
+                                <div class="col-sm-3">
+                                    <input name="name" type="text" class="form-control"
+                                        id="name" value="<?= $name ?>">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+
+                                <div class="col-sm-3">
+                                    <input name="phone" type="hidden" class="form-control"
+                                        id="phone" value="<?= $phone ?>">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
                                 <label class=" col-sm-3 col-form-label">Email
                                     <span style="color:red;">*</span></label>
                                 <div class="col-sm-3">
@@ -128,8 +148,11 @@ if ($result && mysqli_num_rows($result) > 0) {
                 let amount = document.querySelector("#amount").value;
                 let mode = document.querySelector("#mode").value;
                 let email = document.querySelector("#email").value;
+                let name = document.querySelector("#name").value;
+                let phone = document.querySelector("#phone").value;
 
-                if (!amount || !mode || !email) {
+
+                if (!amount || !mode || !email || !name || !phone) {
                     alert("All field is required");
                     return;
                 }
@@ -138,10 +161,10 @@ if ($result && mysqli_num_rows($result) > 0) {
                 let totalAmount = parseFloat(amount) * 100;
 
                 let options = {
-                    "key": "rzp_live_t6gVKS9RuNQJUO", //your rozarpay key 
+                    "key": "rzp_test_wOdC4AX16cJlLk", //your rozarpay key 
                     "amount": totalAmount,
                     "currency": "INR",
-                    "name": "PS-PRINT",
+                    "name": "Instant-Online-Solution",
                     "description": "Payment for Adding wallet balence",
                     "handler": function(response) {
                         alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
@@ -152,6 +175,8 @@ if ($result && mysqli_num_rows($result) > 0) {
                             amount: amount,
                             mode: mode,
                             email: email,
+                            name: name,
+                            phone: phone,
                             payment_status: "Success"
                         }).toString();
 

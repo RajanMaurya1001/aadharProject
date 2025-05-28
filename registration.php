@@ -171,8 +171,8 @@
         </div>
 
         <?php
-        include('../psprint/assets/config/config.php');
-        $data = mysqli_query($conn, "select * from services ORDER BY id DESC LIMIT 1");
+        include('assets/config/config.php');
+        $data = mysqli_query($conn, "SELECT * from services where service_name = 'membership_amount'");
         if (mysqli_num_rows($data) > 0) {
             $row = mysqli_fetch_assoc($data);
         }
@@ -183,6 +183,7 @@
         </div>
 
         <button type="button" id="member_amount">Sign Up</button>
+        
         <!-- </form> -->
 
         <div class="login-link">
@@ -212,10 +213,10 @@
                 let totalAmount = parseFloat(charge) * 100;
 
                 let options = {
-                    "key": "rzp_live_t6gVKS9RuNQJUO", //your rozarpay key 
+                    "key": "rzp_test_wOdC4AX16cJlLk", //your rozarpay key 
                     "amount": totalAmount,
                     "currency": "INR",
-                    "name": "PS-PRINT",
+                    "name": "Instant-Online-Solution",
                     "description": "Payment for Membership balence",
                     "handler": function(response) {
                         alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('../psprint/assets/config/config.php');
+include('assets/config/config.php');
 
 
 if (isset($_GET['charge'])) {
@@ -16,22 +16,24 @@ if (isset($_GET['charge'])) {
     $sql = "Insert Into user(name, email, phone, state, district, password, membership_amount, transaction_id) values('$name', '$email', '$phone', '$state', '$district', '$password', '$membership_amount', '$transaction_id')";
     if (mysqli_query($conn, $sql)) {
         // Green API Details
-        $idInstance = "7105242669";
-        $apiToken = "dfb24b0b4e784ed4814e3a780e2ea43d01b49830e9a94562b2";
+        $idInstance = "7105245778";
+        $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
         $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
 
         // -----------------------------
         // ✅ 1. Message to Applicant
         // -----------------------------
         $applicantNumber = "91" . $phone . "@c.us";
-        $messageToUser = "Hello $application_no, your application for the Learning Licence has been $status.\n\n" .
-            "remark : $remark\n\n" .
-            "Thank you!";
+        $messageToUser = " 🎉 Congratulations! $name Your subscription has been successfully activated.\n\n" .
 
-        $dataUser = [
-            "chatId" => $applicantNumber,
-            "message" => $messageToUser
-        ];
+            "✅ You now have full access this Plateform.\n\n" .
+            "Your User Id: [$email]\n" .
+            "Your Password: [$password]\n" .
+            "Thank you for choosing us! 🙏\n\n";
+            $dataUser = [
+                "chatId" => $applicantNumber,
+                "message" => $messageToUser
+            ];
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_POST, 1);
@@ -44,12 +46,13 @@ if (isset($_GET['charge'])) {
         // -----------------------------
         // ✅ 2. Message to Admin
         // -----------------------------
-        $adminNumber = "918303293043@c.us";
+        $adminNumber = "917266956455@c.us";
         $messageToAdmin =
-            "Learning Licence Application $status is:\n\n" .
-            "application_no: $application_no\n\n" .
-            "Reason: $remark\n\n" .
-            "Application Status: $status\n";
+            "New Member Registert Here:\n\n" .
+            "Name:$name \n\n".
+            "Membership Amount: $charge";
+    
+        
 
         $dataAdmin = [
             "chatId" => $adminNumber,
@@ -64,7 +67,7 @@ if (isset($_GET['charge'])) {
         $response2 = curl_exec($ch2);
         curl_close($ch2);
         echo "<script>
-        alert('User Login Succesfully! Message Sent..);
+        alert('User Login Succesfully! Message Sent..');
         window.location.href = 'login.php';
         </script>";
     } else {

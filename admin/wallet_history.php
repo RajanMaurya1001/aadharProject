@@ -31,9 +31,9 @@ include 'layout/header.php';
                             <tr>
                                 <th class="text-center">SL.</th>
                                 <th class="text-center">Amount</th>
-                                <th class="text-center">Balance</th>
+                                <th class="text-center">Name</th>
                                 <th class="text-center">Purpose</th>
-                                <th class="text-center">Gender</th>
+                                <th class="text-center">Balance</th>
                                 <th class="text-center">Status</th>
                                 <th class="text-center">Action</th>
                             </tr>
@@ -49,7 +49,7 @@ include 'layout/header.php';
                                         <td class="text-center"><?= $row['id'] ?></td>
                                         <td class="text-center"><?= $row['amount'] ?></td>
                                         <td class="text-center">
-                                            <?= $row['available_balance'] ?>
+                                            <?= $row['name'] ?>
 
                                         </td>
                                         <td class="text-center"><?= $row['purpose'] ?> </td>

@@ -42,8 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // die();
     if (mysqli_query($conn, $sql)) {
         // Green API Details
-        $idInstance = "7105242669";
-        $apiToken = "dfb24b0b4e784ed4814e3a780e2ea43d01b49830e9a94562b2";
+        $idInstance = "7105245778";
+        $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
         $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
 
         // -----------------------------
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // -----------------------------
         // ✅ 2. Message to Admin
         // -----------------------------
-        $adminNumber = "918303293043@c.us";
+        $adminNumber = "917266956455@c.us";
         $messageToAdmin =
             "Pan Manuual Application Received:\n\n" .
             "Card Type: $card_type\n" .

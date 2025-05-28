@@ -37,13 +37,14 @@ include 'layout/header.php';
                                 <th class="text-center">STATUS</th>
                                 <th class="text-center">Remark</th>
                                 <th class="text-center">Action</th>
-                                <th class="text-center">File</th>
+                                <!-- <th class="text-center">File</th> -->
+                                <th class="text-center">Final Submit</th>
                             </tr>
                         </thead>
                         <tbody>
 
                             <?php
-                            $sql = "select * from pan";
+                            $sql = "select * from pan where final_submit = 0";
                             $data = mysqli_query($conn, $sql);
                             if (mysqli_num_rows($data) > 0) {
                                 while ($row = mysqli_fetch_assoc($data)) {
@@ -58,25 +59,14 @@ include 'layout/header.php';
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="text-center phone"><?= $row['phone'] ?></td>
+                                        <td class="text-center phone" style="display: none;"><?= $row['phone'] ?></td>
                                         <td class="text-center"><?= $row['pan_no'] ?></td>
                                         <td class="text-center"><?= $row['fName'] ?></td>
                                         <td class="text-center"><?= date("Y-m-d", strtotime($row['created_at'])) ?></td>
-                                        <td class="text-center user_id" style="display: none;"><?= $row['user_id'] ?></td>
+                                        <td class="text-center user_id" style="display: none;"><?= $row['user_id'] ?></td>4
+                                        <td class="text-center"><?= $row['status'] ?></td>
+                                        <td class="text-center"><?= $row['remark'] ?></td>
 
-
-                                        <td class="text-center">
-                                            <select class="form-select form-select-sm status-dropdown" data-id="<?= $row['id'] ?>">
-                                                <option value="Pending" <?= $row['status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
-                                                <option value="Process" <?= $row['status'] == 'Process' ? 'selected' : '' ?>>Process</option>
-                                                <option value="Approved" <?= $row['status'] == 'Approved' ? 'selected' : '' ?>>Approved</option>
-                                                <option value="Rejected" <?= $row['status'] == 'Rejected' ? 'selected' : '' ?>>Rejected</option>
-                                            </select>
-                                        </td>
-
-                                        <td>
-                                            <textarea class="remark-textarea" data-id="<?= $row['id']; ?>" rows="2"><?= htmlspecialchars($row['remark']); ?></textarea>
-                                        </td>
                                         <td>
                                             <a href="updatePan.php?id=<?= $row['id'] ?>">
                                                 <button>UPDATE</button>
@@ -85,15 +75,9 @@ include 'layout/header.php';
                                                 <button>DELETE</button>
                                             </a>
                                         </td>
-                                        <!-- <td>
-                                            <form action="upload_Pan.php" method="POST" enctype="multipart/form-data">
-                                                <input type="hidden" name="id" value="<?= $row['id']; ?>">
-                                                <input type="file" name="certificate" accept=".pdf,.jpg,.jpeg,.png" required>
-                                                <button type="submit">Upload</button>
-                                            </form>
-                                        </td> -->
 
-                                        <td class="text-center">
+
+                                        <!-- <td class="text-center">
                                             <a
                                                 style="margin-top:2px;margin-bottom:2px;padding-top:2px;padding-bottom:2px;"
                                                 class="btn btn-success"
@@ -101,7 +85,19 @@ include 'layout/header.php';
                                                 target="_blank">
                                                 Print
                                             </a>
+                                        </td> -->
+
+                                        <td>
+                                            <?php if (!empty($row['certificate_file']) && ($row['status'] == 'Approved' || $row['status'] == 'Rejected')): ?>
+                                                <form method="POST" action="pan_submit.php" onsubmit="return confirm('Are you sure you want to finalize this?');">
+                                                    <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                                    <button type="submit" name="pan_submit" style="background-color: red;">Final Submit</button>
+                                                </form>
+                                            <?php else: ?>
+                                                <button disabled style="background-color: gray;">Final Submit</button>
+                                            <?php endif; ?>
                                         </td>
+
                                     </tr>
                             <?php
                                 }

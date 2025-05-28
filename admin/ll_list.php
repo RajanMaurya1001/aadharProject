@@ -55,12 +55,12 @@ include 'layout/header.php';
                                                                 <th style="color:white; text-align:center;">#</th>
                                                                 <th style="color:white"> PS Print Application Number</th>
                                                                 <th style="color:white">Date/Time</th>
-                                                                <th style="color:white">Application Number</th>
+                                                                <th style="color:white">Password</th>
                                                                 <th style="color:white">DOB</th>
                                                                 <th style="color:white; text-align:center;">Status</th>
                                                                 <th class="text-center">Remark</th>
                                                                 <th class="text-center">Action</th>
-                                                                <th class="text-center">File</th>
+                                                                <th class="text-center">Final Submit</th>
 
                                                             </tr>
                                                         </thead>
@@ -68,7 +68,7 @@ include 'layout/header.php';
                                                         <tbody>
 
                                                             <?php
-                                                            $sql = "select * from licence";
+                                                            $sql = "SELECT * FROM licence WHERE final_submit = 0";
                                                             $data = mysqli_query($conn, $sql);
                                                             if (mysqli_num_rows($data) > 0) {
                                                                 while ($row = mysqli_fetch_assoc($data)) {
@@ -76,23 +76,15 @@ include 'layout/header.php';
                                                             ?>
                                                                     <tr>
                                                                         <td><?= $row['id'] ?></td>
-                                                                        <td>PS_64217009</td>
+                                                                        <td><?= $row['application_no'] ?></td>
                                                                         <td><?= $row['created_at'] ?></td>
-                                                                        <td class="application_no"><?= $row['application_no'] ?></td>
-                                                                        <td class="phone"><?= $row['application_no'] ?></td>
+                                                                        <td class="phone"><?= $row['password'] ?></td>
                                                                         <td class="user_id" style="display: none;"><?= $row['user_id'] ?></td>
                                                                         <td><?= $row['dob'] ?></td>
-                                                                        <td class="text-center">
-                                                                            <select class="form-select form-select-sm status-dropdown" data-id="<?= $row['id'] ?>">
-                                                                                <option value="Pending" <?= $row['status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
-                                                                                <option value="Process" <?= $row['status'] == 'Process' ? 'selected' : '' ?>>Process</option>
-                                                                                <option value="Approved" <?= $row['status'] == 'Approved' ? 'selected' : '' ?>>Approved</option>
-                                                                                <option value="Rejected" <?= $row['status'] == 'Rejected' ? 'selected' : '' ?>>Rejected</option>
-                                                                            </select>
-                                                                        </td>
-                                                                        <td>
-                                                                            <textarea class="remark-textarea" data-id="<?= $row['id']; ?>" rows="2"><?= htmlspecialchars($row['remark']); ?></textarea>
-                                                                        </td>
+                                                                        <td><?= $row['status'] ?></td>
+                                                                        <td><?= $row['remark'] ?></td>
+
+
                                                                         <td>
                                                                             <div class="d-flex flex-column">
                                                                                 <a href="updateLearning.php?id=<?= $row['id'] ?>">
@@ -103,13 +95,33 @@ include 'layout/header.php';
                                                                                 </a>
                                                                             </div>
                                                                         </td>
+
                                                                         <td>
-                                                                            <form action="upload_Licenece.php" method="POST" enctype="multipart/form-data">
-                                                                                <input type="hidden" name="id" value="<?= $row['id']; ?>">
-                                                                                <input type="file" name="certificate" accept=".pdf,.jpg,.jpeg,.png" required>
-                                                                                <button type="submit">Upload</button>
-                                                                            </form>
+                                                                            <?php
+                                                                            $status = $row['status'];
+                                                                            $certificate = $row['certificate_file'];
+                                                                            $id = $row['id'];
+
+                                                                            $enableButton = false;
+
+                                                                            if ($status === 'Rejected') {
+                                                                                $enableButton = true;
+                                                                            } elseif ($status === 'Approved' && !empty($certificate)) {
+                                                                                $enableButton = true;
+                                                                            }
+
+                                                                            if ($enableButton):
+                                                                            ?>
+                                                                                <form method="POST" action="final_learning_submit.php" onsubmit="return confirm('Are you sure you want to finalize this?');">
+                                                                                    <input type="hidden" name="id" value="<?= $id ?>">
+                                                                                    <button type="submit" name="final_learning_submit" style="background-color: red;">Final Submit</button>
+                                                                                </form>
+                                                                            <?php else: ?>
+                                                                                <button disabled style="background-color: gray;">Final Submit</button>
+                                                                            <?php endif; ?>
                                                                         </td>
+
+
 
                                                                     </tr>
                                                             <?php
@@ -203,6 +215,40 @@ include 'layout/header.php';
             };
 
             xhr.send("id=" + encodeURIComponent(id) + "&remark=" + encodeURIComponent(remark));
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        $('form[action="upload_Licenece.php"]').on('submit', function(e) {
+            e.preventDefault(); // Prevent default form submit
+
+            const form = $(this)[0];
+            const formData = new FormData(form); // Create FormData object
+            const row = $(this).closest('tr');
+
+            // Confirm before submitting
+            if (!confirm("Are you sure you want to upload and finalize this application?")) return;
+
+            $.ajax({
+                url: 'upload_Licenece.php',
+                type: 'POST',
+                data: formData,
+                processData: false, // Important
+                contentType: false, // Important
+                success: function(response) {
+                    console.log("Response from server:", JSON.stringify(response));
+                    alert("Server says: " + response);
+
+                    if (response.trim() === "success") {
+                        alert("Certificate upload ho gaya ✅");
+                        row.hide();
+                    } else {
+                        alert("Upload failed: " + response);
+                    }
+                }
+            });
         });
     });
 </script>

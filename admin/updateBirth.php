@@ -1,4 +1,6 @@
 <?php
+ob_start();
+ob_end_flush();
 session_start();
 if (!isset($_SESSION['id']) || !isset($_SESSION['role'])) {
     header("Location: ../login.php");
@@ -8,245 +10,20 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['role'])) {
 if ($_SESSION['role'] !== '1' && $_SESSION['role'] !== 1) {
     die("Access Denied!");
 }
-include('config.php');
+
 include 'layout/header.php';
+include('config.php');
+
+// Fetch charge once
+$chargeis = 0;
+$fetchServiceCharge = "SELECT service_charge FROM services WHERE service_name='Birth_certificate'";
+$DataBirth = mysqli_query($conn, $fetchServiceCharge);
+if (mysqli_num_rows($DataBirth) > 0) {
+    $resData = mysqli_fetch_array($DataBirth);
+    $chargeis = $resData['service_charge'];
+}
 ?>
-<!--start header -->
-<header>
-    <div class="topbar d-flex align-items-center">
-        <nav class="navbar navbar-expand">
-            <div class="mobile-toggle-menu"><i class='bx bx-menu'></i>
-            </div>
-            <div class="search-bar flex-grow-1">
 
-
-
-            </div>
-            <div style="margin-right:12px;" class="text-success">
-                <style>
-                    #time {
-                        color: white;
-                        font-size: 18px;
-                        font-family: "Times New Roman", Times, serif;
-                    }
-                </style>
-                <a id="time"></a>
-                <script>
-                    var timeDisplay = document.getElementById("time");
-
-                    function refreshTime() {
-                        var dateString = new Date().toLocaleString("en-IN", {
-                            timeZone: "Asia/Kolkata"
-                        });
-                        var formattedString = dateString.replace(", ", " - ");
-                        timeDisplay.innerHTML = formattedString;
-                    }
-
-                    setInterval(refreshTime, 1000);
-                </script>
-            </div>
-            <a class="btn btn-warning" href="wallet.php">Wallet: ₹146</a>
-            <div class="top-menu ms-auto">
-                <ul class="navbar-nav align-items-center">
-
-                    <li class="nav-item dropdown dropdown-large">
-                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#"
-                            role="button" data-bs-toggle="dropdown" aria-expanded="false"> <span
-                                class="alert-count">7</span>
-                            <i class='bx bx-bell'></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a href="javascript:;">
-                                <div class="msg-header">
-                                    <p class="msg-header-title">Notifications</p>
-                                    <p class="msg-header-clear ms-auto">Marks all as read</p>
-                                </div>
-                            </a>
-                            <div class="header-notifications-list">
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-primary text-primary"><i
-                                                class="bx bx-group"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New Customers<span
-                                                    class="msg-time float-end">14 Sec
-                                                    ago</span></h6>
-                                            <p class="msg-info">5 new user registered</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-danger text-danger"><i
-                                                class="bx bx-cart-alt"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New Orders <span class="msg-time float-end">2
-                                                    min
-                                                    ago</span></h6>
-                                            <p class="msg-info">You have recived new orders</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-success text-success"><i
-                                                class="bx bx-file"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">24 PDF File<span class="msg-time float-end">19
-                                                    min
-                                                    ago</span></h6>
-                                            <p class="msg-info">The pdf files generated</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-warning text-warning"><i
-                                                class="bx bx-send"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">Time Response <span
-                                                    class="msg-time float-end">28 min
-                                                    ago</span></h6>
-                                            <p class="msg-info">5.1 min avarage time response</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-info text-info"><i
-                                                class="bx bx-home-circle"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New Product Approved <span
-                                                    class="msg-time float-end">2 hrs ago</span></h6>
-                                            <p class="msg-info">Your new product has approved</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-danger text-danger"><i
-                                                class="bx bx-message-detail"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New Comments <span class="msg-time float-end">4
-                                                    hrs
-                                                    ago</span></h6>
-                                            <p class="msg-info">New customer comments recived</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-success text-success"><i
-                                                class='bx bx-check-square'></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">Your item is shipped <span
-                                                    class="msg-time float-end">5 hrs
-                                                    ago</span></h6>
-                                            <p class="msg-info">Successfully shipped your item</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-primary text-primary"><i
-                                                class='bx bx-user-pin'></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New 24 authors<span
-                                                    class="msg-time float-end">1 day
-                                                    ago</span></h6>
-                                            <p class="msg-info">24 new authors joined last week</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-warning text-warning"><i
-                                                class='bx bx-door-open'></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">Defense Alerts <span
-                                                    class="msg-time float-end">2 weeks
-                                                    ago</span></h6>
-                                            <p class="msg-info">45% less alerts last 4 weeks</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                            <a href="javascript:;">
-                                <div class="text-center msg-footer">View All Notifications</div>
-                            </a>
-                        </div>
-                    </li>
-
-                    <li class="nav-item dropdown dropdown-large">
-                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#"
-                            role="button" data-bs-toggle="dropdown" aria-expanded="false"> <span
-                                class="alert-count">0</span>
-                            <i class='bx bx-comment'></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a href="javascript:;">
-                                <div class="msg-header">
-                                    <p class="msg-header-title">Messages</p>
-                                    <p class="msg-header-clear ms-auto">Marks all as read</p>
-                                </div>
-                            </a>
-                            <div class="header-message-list">
-
-
-                            </div>
-                            <a href="javascript:;">
-                                <div class="text-center msg-footer">View All Messages</div>
-                            </a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-            <div class="user-box dropdown">
-                <a class="d-flex align-items-center nav-link dropdown-toggle dropdown-toggle-nocaret" href="#"
-                    role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="../template/ahkweb/assets/images/avatars/avatar-2.png" class="user-img"
-                        alt="user avatar">
-                    <div class="user-info ps-3">
-                        <p class="user-name mb-0">IT DEPARTMENT</p>
-                        <p class="designattion mb-0"></p>
-                    </div>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="profile.php"><i
-                                class="bx bx-user"></i><span>Profile</span></a>
-                    </li>
-                    <li><a class="dropdown-item" href="javascript:;"><i
-                                class="bx bx-cog"></i><span>Settings</span></a>
-                    </li>
-                    <li><a class="dropdown-item" href="javascript:;"><i
-                                class='bx bx-home-circle'></i><span>Dashboard</span></a>
-                    </li>
-                    <li><a class="dropdown-item" href="javascript:;"><i
-                                class='bx bx-dollar-circle'></i><span>Earnings</span></a>
-                    </li>
-                    <li><a class="dropdown-item" href="javascript:;"><i
-                                class='bx bx-download'></i><span>Downloads</span></a>
-                    </li>
-                    <li>
-                        <div class="dropdown-divider mb-0"></div>
-                    </li>
-                    <li><a class="dropdown-item" href="../includes/logout.php"><i
-                                class='bx bx-log-out-circle'></i><span>Logout</span></a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </div>
-</header>
 
 
 <?php
@@ -263,8 +40,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $mName = $_POST['mName'];
     $mAadhar = $_POST['mAadhar'];
     $address = $_POST['address'];
-    $status = 'pending';
+    $status = isset($_POST['status']) ? $_POST['status'] : '';
+    $remark = isset($_POST['remark']) ? $_POST['remark'] : '';
     $id = $_POST['id'];
+
+    // Get phone number
+    $getUser = mysqli_query($conn, "SELECT user_id FROM birth_certificate WHERE id = $id");
+    $userData = mysqli_fetch_assoc($getUser);
+    $user_id = $userData['user_id'];
+
+    $getPhone = mysqli_query($conn, "SELECT phone FROM user WHERE id = $user_id");
+    $phoneData = mysqli_fetch_assoc($getPhone);
+    $phone = $phoneData['phone'];
+
+
+
+
+    if (empty($_FILES['certificate_file']['name'])) {
+        $filename = $_POST['oldimage'];
+    } else {
+        $filename = time() . $_FILES['certificate_file']['name'];
+        $tempname = $_FILES['certificate_file']['tmp_name'];
+        move_uploaded_file($tempname, '../assets/certificates/' . $filename);
+    }
+
 
     $sql = "UPDATE birth_certificate SET 
     certificate = '$certificate', 
@@ -278,14 +77,60 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     fAadhar = '$fAadhar', 
     mName = '$mName', 
     mAadhar = '$mAadhar',
-    address = '$address'
+    address = '$address',
+    status = '$status',
+    certificate_file = '$filename',
+    remark = '$remark'
 WHERE id = $id";
 
     if (mysqli_query($conn, $sql)) {
-        echo "<script>
-    alert('Data Update Successfully');
-    window.location.href= 'birth_death_apply_list.php';
-    </script>";
+
+        // Handle rejection refund and logs
+        if ($status === "Rejected") {
+            // Refund to user
+            mysqli_query($conn, "UPDATE total_wallet_balence SET wallet_balence = wallet_balence + $chargeis WHERE user_id = $user_id");
+            mysqli_query($conn, "UPDATE admin_wallet SET amount = amount - $chargeis WHERE amount >= $chargeis");
+
+            // Log transaction
+            $getBal = mysqli_query($conn, "SELECT wallet_balence FROM total_wallet_balence WHERE user_id = $user_id");
+            $balRow = mysqli_fetch_assoc($getBal);
+            $current_balance = $balRow['wallet_balence'];
+
+            $purpose = 'Refund: Birth Certificate';
+            $type = 'debit';
+            $insertLog = "INSERT INTO wallet_transaction_history 
+            (user_id, amount, available_balance, purpose, type, status) 
+            VALUES ($user_id, $chargeis, $current_balance, '$purpose', '$type', 1)";
+            mysqli_query($conn, $insertLog);
+        }
+
+        // Send WhatsApp messages
+        if ($phone) {
+            $idInstance = "7105245778";
+            $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
+            $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+            $applicantNumber = "91" . $phone . "@c.us";
+            $messageToUser = "Hello $name, your Birth Certificate application status is now *$status*.\n\nRemark: $remark";
+
+            $dataUser = ["chatId" => $applicantNumber, "message" => $messageToUser];
+
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+
+            $response = curl_exec($ch);
+            if (curl_errno($ch)) {
+                echo 'Curl Error: ' . curl_error($ch);
+            } else {
+                echo 'WhatsApp API Response: ' . $response;
+            }
+            curl_close($ch);
+            echo "<script>window.location.href = 'birth_death_apply_list.php';</script>";
+            exit;
+        }
     }
 }
 if (isset($_GET['id'])) {
@@ -294,14 +139,10 @@ if (isset($_GET['id'])) {
     $data = mysqli_query($conn, $new_sql);
     if (mysqli_num_rows($data) > 0) {
         $row = mysqli_fetch_assoc($data);
+        // $phone = $row['phone'];
     }
 }
-
-
 ?>
-
-
-
 
 
 <!--start page wrapper -->
@@ -339,9 +180,15 @@ if (isset($_GET['id'])) {
                 <hr />
                 <div class="card border-top border-0 border-4 border-primary">
                     <div class="card-body p-5">
-                        <div>
+                        <!-- <div>
                             <h6 class="text-danger "> जन्म प्रमाण पत्र 24 घंटे में कभी भी जारी हो सकता है | प्रमाण पत्र किसी भी राज्य के किसी भी पंचायत से आएगा | इसका इस्तमाल आधार कार्ड में करना है | आगे आपकी ज़िम्मेदारी होगी | जिसका आधार नंबर नहीं है उसमें NULL लिख सकते हैं | एक बार डेटा लगाने पर कैंसिल या रिफंड नहीं होगा </h6>
-                        </div>
+                        </div> -->
+
+
+
+
+
+
                         <div class="card-title d-flex align-items-center">
                             <div><i class="bx bxs-id-card me-1 font-22 text-primary"></i>
                             </div>
@@ -349,17 +196,34 @@ if (isset($_GET['id'])) {
                         </div>
                         <hr>
                         <form action="" method="POST" enctype="multipart/form-data" class="row g-3">
+
+                            <label for="status">Status</label>
+                            <select class="form-select form-select-sm status-dropdown" name="status" data-id="<?= $row['id'] ?>">
+                                <option value="Pending" <?= $row['status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
+                                <option value="Process" <?= $row['status'] == 'Process' ? 'selected' : '' ?>>Process</option>
+                                <option value="Approved" <?= $row['status'] == 'Approved' ? 'selected' : '' ?>>Approved</option>
+                                <option value="Rejected" <?= $row['status'] == 'Rejected' ? 'selected' : '' ?>>Rejected</option>
+                            </select>
+                            <label for="remark">Remark</label>
+                            <input type="text" name="remark" oninput="this.value = this.value.toUpperCase()" class="form-control" value="<?= $row['remark'] ?>"><br>
+                            <!-- <label for="certificate">Upload Certificate</label> -->
+                            <input type="hidden" name="oldimage" class="form-control " value="<?= $row['certificate_file'] ?>">
+                            <img src="../assets/certificates/<?= $row['certificate_file'] ?>" alt="" height="50px" width="50px" class="">
+
+                            <label for="certificate">Upload Certificate</label>
+                            <input type="file" name="certificate_file" oninput="this.value = this.value.toUpperCase()" class="form-control" value="<?= $row['certificate_file'] ?>"><br>
+
                             <input type="hidden" name="id" value="<?php echo $id; ?>">
                             <label for="certificate_type">Certificate Type:</label>
-                            <select name="certificate" id="certificate_type" class="form-control" required>
+                            <select name="certificate" id="certificate_type" class="form-control">
                                 <option value="birth certificate">Birth Certificate</option>
                             </select><br>
                             <label for="state">STATE:</label>
-                            <select name="state" class="form-control" required>
+                            <select name="state" class="form-control">
                                 <option value="Uttar Pradesh" <?= $row['state'] == 'Uttar Pradesh' ? 'selected' : '' ?>>UTTAR PRADESH (उत्तर प्रदेश)</option>
                             </select><br>
                             <label for="district">DISTRICT:</label>
-                            <select name="district" id="district" class="form-control" required>
+                            <select name="district" id="district" class="form-control">
                                 <option value="">Select a district...</option>
                                 <option value="AGRA" <?= $row['district'] == 'AGRA' ? 'selected' : '' ?>>AGRA आगरा</option>
                                 <option value="ALIGARH" <?= $row['district'] == 'ALIGARH' ? 'selected' : '' ?>>ALIGARH अलीगढ़</option>
@@ -439,49 +303,50 @@ if (isset($_GET['id'])) {
                                 <option value="VARANASI" <?= $row['district'] == 'VARANASI' ? 'selected' : '' ?>>VARANASI वाराणसी</option>
                             </select>
 
+
                             <br>
 
                             <label for="नाम / Full Name">नाम / Full NAME*</label>
-                            <input type="text" name="name" oninput="this.value = this.value.toUpperCase()" class="form-control" value="<?= $row['name'] ?>" required><br>
+                            <input type="text" name="name" oninput="this.value = this.value.toUpperCase()" class="form-control" value="<?= $row['name'] ?>"><br>
 
                             <label for="applicant_aadhar">आधार नंबर / ADHAR NUMBER*</label>
-                            <input type="text" oninput="this.value = this.value.toUpperCase()" name="aadhar_number" class="form-control" value="<?= $row['aadhar_number'] ?>" required><br>
+                            <input type="text" oninput="this.value = this.value.toUpperCase()" name="aadhar_number" class="form-control" value="<?= $row['aadhar_number'] ?>"><br>
 
                             <label for="gender">लिंग / Gender*</label>
-                            <select name="gender" class="form-control" required ">
+                            <select name="gender" class="form-control" ">
                                 <option value=" MALE" <?= $row['gender'] == 'MALE' ? 'selected' : '' ?>>Male</option>
                                 <option value="FEMALE" <?= $row['gender'] == 'FEMALE' ? 'selected' : '' ?>>Female</option>
                                 <option value="OTHER" <?= $row['gender'] == 'OTHER' ? 'selected' : '' ?>>Other</option>
                             </select><br>
 
                             <label for="date_of_birth" id="date_of_birth_label">जन्म तिथि / Date of birth*</label>
-                            <input type="text" name="dob" id="date_of_birth" class="form-control" required value="<?= $row['dob'] ?>"><br>
+                            <input type="text" name="dob" id="date_of_birth" class="form-control" value="<?= $row['dob'] ?>"><br>
 
 
                             <label for="father_name">पिता का नाम / Father Name*</label>
-                            <input type="text" oninput="this.value = this.value.toUpperCase()" name="fName" class="form-control" required value="<?= $row['fName'] ?>"><br>
+                            <input type="text" oninput="this.value = this.value.toUpperCase()" name="fName" class="form-control" value="<?= $row['fName'] ?>"><br>
 
                             <label for="father_aadhar">पिता का आधार / Father Aadhar</label>
-                            <input type="number" oninput="this.value = this.value.toUpperCase()" name="fAadhar" class="form-control" required value="<?= $row['fAadhar'] ?>"><br>
+                            <input type="number" oninput="this.value = this.value.toUpperCase()" name="fAadhar" class="form-control" value="<?= $row['fAadhar'] ?>"><br>
 
                             <label for="mother_name">माता का नाम / Mother Name *</label>
-                            <input type="text" oninput="this.value = this.value.toUpperCase()" name="mName" class="form-control" required value="<?= $row['mName'] ?>"><br>
+                            <input type="text" oninput="this.value = this.value.toUpperCase()" name="mName" class="form-control" value="<?= $row['mName'] ?>"><br>
 
                             <label for="mother_aadhar">माता का आधार / Mother Aadhar</label>
-                            <input type="number" oninput="this.value = this.value.toUpperCase()" name="mAadhar" class="form-control" required value="<?= $row['mAadhar'] ?>"><br>
+                            <input type="number" oninput="this.value = this.value.toUpperCase()" name="mAadhar" class="form-control" value="<?= $row['mAadhar'] ?>"><br>
 
                             <label for="address"> पता / Address *</label>
                             <textarea name="address" oninput="this.value = this.value.toUpperCase()" rows="4" class="form-control"><?= $row['address'] ?></textarea><br>
 
 
-                            <div class=" col-12 ml-2">
+                            <!-- <div class=" col-12 ml-2">
                                 <h5 class="text-warning">Application Fee: ₹250</h5>
                                 <h5 class="text-warning"> DOB -> 2024 to 2025 Data Not Allow</h5>
 
                                 <input type="hidden" name="fee" value="250">
-                            </div>
+                            </div> -->
                             <div class="col-12">
-                                <button type="submit" class="btn btn-primary px-5">Apply</button>
+                                <button type="submit" class="btn btn-primary px-5">Update</button>
                             </div>
                         </form>
                     </div>

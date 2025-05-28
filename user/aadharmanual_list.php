@@ -7,7 +7,7 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['role'])) {
 
 if ($_SESSION['role'] !== '0' && $_SESSION['role'] !== 0) {
     die("Access Denied!");
-}
+} 
 $id = $_SESSION['id'];
 include('config.php');
 include 'layout/header.php';
@@ -34,8 +34,6 @@ include 'layout/header.php';
                                 <th class="text-center">Name</th>
                                 <th class="text-center">AADHAAR NUMBER</th>
                                 <th class="text-center">DATE</th>
-                                <th class="text-center">STATUS</th>
-                                <th class="text-center">REMARK</th>
                                 <th class="text-center">FILE</th>
 
                             </tr>
@@ -53,8 +51,7 @@ include 'layout/header.php';
                                         <td class="text-center"><?= $row['name'] ?></td>
                                         <td class="text-center "><?= $row['aadhar_no'] ?></td>
                                         <td class="text-center"><?= date("Y-m-d", strtotime($row['created_at'])) ?></td>
-                                        <td class="text-center "><?= $row['status'] ?></td>
-                                        <td class="text-center"><?= $row['remark'] ?></td>
+
 
                                         <!-- <td class="text-center">
                                             <a

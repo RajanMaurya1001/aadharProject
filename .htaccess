@@ -1,0 +1,16 @@
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+
+# Redirect root to login.php
+RewriteRule ^$ login.php [L]
+
+# Allow direct access to login.php
+RewriteRule ^login.php$ - [L]
+
+# Redirect all other non-existent paths to login.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . login.php [L]
+</IfModule>

@@ -15,8 +15,8 @@ include 'layout/header.php';
 
 
 <?php
-
-$getServices = "Select * from services where service_name = 'Learning licence'";
+$chargeis = 0;
+$getServices = "Select * from services where service_name = 'Learning_licence'";
 $serviceData = mysqli_query($conn, $getServices);
 if (mysqli_num_rows($serviceData) > 0) {
     $serviceRow = mysqli_fetch_assoc($serviceData);
@@ -65,8 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (mysqli_query($conn, $minusWalletUser)) {
 
             // Wallet History Insert Code
+            $name = $_SESSION['name'];
             $purpose = 'Learning Licenece';
-            $type = 'debit';
+            $type = 'credit';
             $status = 1;
             // $transaction_id = 'TXN' . rand(10000, 99999);
 
@@ -75,17 +76,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $new_balance = $newBalRow['wallet_balence'];
 
             $insertLog = "INSERT INTO wallet_transaction_history 
-             (user_id, amount, available_balance, purpose, type, status)
-             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status)";
+             (user_id, amount, available_balance, purpose, type, status, name)
+             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status, '$name')";
             mysqli_query($conn, $insertLog);
 
 
 
-            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis' WHERE user_id = 1";
+            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis'";
             if (mysqli_query($conn, $minusWalletAdmin)) {
                 // Green API Details
-                $idInstance = "7105242669";
-                $apiToken = "dfb24b0b4e784ed4814e3a780e2ea43d01b49830e9a94562b2";
+                $idInstance = "7105245778";
+                $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
                 $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
 
                 // -----------------------------
@@ -111,15 +112,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // -----------------------------
                 // ✅ 2. Message to Admin
                 // -----------------------------
-                $adminNumber = "918303293043@c.us";
+                $adminNumber = "917266956455@c.us";
                 $messageToAdmin =
-                    "Learning Licence Application Received:\n\n" .
-                    "Application No: $application_no\n" .
-                    "Phone: $phone\n" .
-                    "DOB: $dob\n" .
-                    "State: $state\n" .
-                    "District: $district\n" .
-                    "Registration Fee: ₹$chargeis\n";
+                    "Learning Licence Application Received:\n\n\n" .
+                    "Application No: $application_no\n\n" .
+                    "DOB: $dob\n\n" .
+                    "State: $state\n\n" .
+                    "District: $district\n\n" .
+                    "Password: $password";
 
                 $dataAdmin = [
                     "chatId" => $adminNumber,
@@ -138,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 echo "
         <script>
             alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+            window.location.href = 'll_list.php';
         </script>
     ";
             } else {
@@ -293,7 +294,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 </div>
                                             </div>
                                             <?php
-                                            $fee_sql = "SELECT * from services where service_name = 'Learning_ licence'";
+                                            $fee_sql = "SELECT * from services where service_name = 'Learning_licence'";
                                             $fee_data = mysqli_query($conn, $fee_sql);
                                             if (mysqli_num_rows($fee_data) > 0) {
                                                 $row = mysqli_fetch_assoc($fee_data);
@@ -312,7 +313,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                                             <div class="row row-sm mg-t-20">
                                                 <div class="col">
-                                                    <button type="submit" class="btn btn-primary w-100"><i class="fa fa-check-circle"></i> Submit</button>
+                                                    <button type="submit" class="btn btn-primary w-100" onclick="window.location.href='ll.php'"><i class="fa fa-check-circle"></i> Submit</button>
                                                 </div>
                                             </div>
                                         </form>

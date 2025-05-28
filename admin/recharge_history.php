@@ -30,10 +30,12 @@ include 'layout/header.php';
                         <thead class="table-light">
                             <tr>
                                 <th class="text-center">SL.</th>
+                                <th class="text-center">Name</th>
                                 <th class="text-center" style="width: 10px;">Amount</th>
                                 <th class="text-center">TXN ID</th>
                                 <th class="text-center">USER ID</th>
                                 <th class="text-center">TXN date</th>
+
 
 
                                 <!-- <th class="text-center">Action</th> -->
@@ -54,6 +56,7 @@ include 'layout/header.php';
 
                                     <tr>
                                         <td class="text-center"><?= $row['id'] ?></td>
+                                        <th class="text-center"><?= $row['name'] ?></th>
                                         <td class="text-center"><?= $row['amount'] ?></td>
                                         <td class="text-center">
                                             <?= $row['transaction_id'] ?>
@@ -69,20 +72,6 @@ include 'layout/header.php';
                                 }
                             }
                             ?>
-                            <!-- <tr>
-                                <td class="text-center">2</td>
-                                <td class="text-center">200</td>
-                                <td class="text-center">
-                                    PS_9621339850_886331
-
-                                </td>
-                                <td class="text-center">2025-04-23 11:49:47</td>
-
-                                <td class="text-center">
-                                    <div class="badge rounded-pill bg-light-success text-success w-100">Success
-                                    </div>
-                                </td>
-                            </tr> -->
 
                         </tbody>
                     </table>

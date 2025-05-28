@@ -9,11 +9,11 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['role'])) {
 if ($_SESSION['role'] !== '0' && $_SESSION['role'] !== 0) {
     die("Access Denied!");
 }
+$id = $_SESSION['id'];
 include('config.php');
-include 'layout/header.php';
+// include 'layout/header.php';
 
 ?>
-
 
 <?php
 
@@ -73,8 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
             // Wallet History Insert Code
+            $name = $_SESSION['name'];
             $purpose = 'PAN Manual';
-            $type = 'debit';
+            $type = 'credit';
             $status = 1;
             // $transaction_id = 'TXN' . rand(10000, 99999);
 
@@ -83,16 +84,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $new_balance = $newBalRow['wallet_balence'];
 
             $insertLog = "INSERT INTO wallet_transaction_history 
-             (user_id, amount, available_balance, purpose, type, status)
-             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status)";
+             (user_id, amount, available_balance, purpose, type, status, name )
+             VALUES ($id, $chargeis, $new_balance, '$purpose', '$type', $status, '$name')";
             mysqli_query($conn, $insertLog);
 
 
-            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis' WHERE user_id = $id";
+            $minusWalletAdmin = "UPDATE admin_wallet SET amount = amount + '$chargeis'";
             if (mysqli_query($conn, $minusWalletAdmin)) {
                 // Green API Details
-                $idInstance = "7105245150";
-                $apiToken = "5930752ee220440da365847180fbf93eba31bf1fe50947f4a2";
+                $idInstance = "7105245778";
+                $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
                 $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
 
                 // -----------------------------
@@ -118,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // -----------------------------
                 // ✅ 2. Message to Admin
                 // -----------------------------
-                $adminNumber = "918303293043@c.us";
+                $adminNumber = "917266956455@c.us";
                 $messageToAdmin =
                     "Pan Manuual Application Received:\n\n" .
                     "Card Type: $card_type\n" .
@@ -127,8 +128,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     "Father's Name: $fName\n" .
                     "DOB: $dob\n" .
                     "Gender: $gender\n" .
-                    "Phone: $phone\n" .
-                    "Registration Fee: ₹$chargeis\n";
+                    "Phone: $phone\n";
+
 
                 $dataAdmin = [
                     "chatId" => $adminNumber,
@@ -147,6 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo "
         <script>
             alert('Applied Successfully. WhatsApp Message Sent to Applicant and Admin.');
+            window.location.href = 'pan_manual_list.php';
         </script>
     ";
             } else {
@@ -304,7 +306,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <div class="col-sm-3">
                                                 <label>&nbsp;</label>
                                                 <div class="form-group">
-                                                    <button type="submit" name="savedata" class="btn btn-success btn-block" style="box-shadow: 0 0 0 3px rgba(40,167,69,.5);">Submit</button>
+                                                    <button type="submit" name="savedata" class="btn btn-success btn-block" style="box-shadow: 0 0 0 3px rgba(40,167,69,.5);" onclick="window.location.href='pan_manual.php'">Submit</button>
                                                 </div>
                                             </div>
                                         </div>

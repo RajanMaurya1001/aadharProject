@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $type = 'credit';
         $status = 1;
 
-        $insertLog = "INSERT INTO wallet_transaction_history 
+        $insertLog = "INSERT INTO wallet_transaction_history
         (user_id, amount, available_balance, purpose, type, status)
         VALUES ($user_id, $chargeis, $current_balance, '$purpose', '$type', $status)";
         mysqli_query($conn, $insertLog);
@@ -60,8 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if (mysqli_query($conn, $sql)) {
         // Green API Details
-        $idInstance = "7105245150";
-        $apiToken = "5930752ee220440da365847180fbf93eba31bf1fe50947f4a2";
+        $idInstance = "7105245778";
+        $apiToken = " ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
         $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
 
         // -----------------------------
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // -----------------------------
         // ✅ 2. Message to Admin
         // -----------------------------
-        $adminNumber = "918303293043@c.us";
+        $adminNumber = "917266956455@c.us";
         $messageToAdmin =
             "Aadhar Manual Application $status is:\n\n" .
             "name: $name\n\n" .

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('config.php');
+include 'config.php';
 header('Content-Type: application/json'); // ✅ IMPORTANT
 
 $chargeis = 0;
@@ -35,9 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $id = intval($id); // Ensure ID is integer
 
         $sql = "UPDATE pm_kissan SET status = '$status' WHERE id = $id";
-        mysqli_query($conn, $sql);
-
-        echo "<script>console.log(" . json_encode($sql) . ");</script>";
+        $updateResult = mysqli_query($conn, $sql);
     } else {
         // Escape variables
         $status = mysqli_real_escape_string($conn, $status);
@@ -47,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Update ration status
         $sql = "UPDATE pm_kissan SET status = '$status' WHERE id = $id";
-        mysqli_query($conn, $sql);
+        $updateResult = mysqli_query($conn, $sql);
 
         // Update main wallet
         $updtMainWallet = "UPDATE total_wallet_balence SET wallet_balence = wallet_balence + $chargeis WHERE user_id = $user_id";
@@ -66,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Insert wallet transaction log
             $purpose = 'Refund: Pm Kissan Apply';
-            $type = 'credit';
+            $type = 'debit';
             $log_status = 1; // Changed variable name to avoid conflict with $status
 
             // Escape strings
@@ -80,18 +78,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             mysqli_query($conn, $insertLog);
         } else {
             // Handle case where user wallet record doesn't exist
-            echo "<script>alert('Wallet balance not found for this user!');</script>";
+            echo json_encode(['success' => false, 'error' => 'Wallet balance not found for this user!']);
+            exit;
         }
     }
 
-    if (mysqli_query($conn, $sql)) {
+    if ($updateResult) {
         $idInstance = "7105245150";
         $apiToken = "5930752ee220440da365847180fbf93eba31bf1fe50947f4a2";
         $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
 
-        $applicantNumber = "91" . $phone . "@c.us";
-        $messageToUser = "Hello, $name your application for the PM Kishan has been $status.\n\n" .
-            "Remark: $remark\n\nThank you!";
+        $applicantNumber = "91{$phone}@c.us";
+        $messageToUser = "Hello, {$name} your application for the PM Kishan has been {$status}.\n\n" .
+            "Remark: {$remark}\n\nThank you!";
 
         $dataUser = [
             "chatId" => $applicantNumber,

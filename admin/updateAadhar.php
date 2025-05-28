@@ -10,6 +10,14 @@ if ($_SESSION['role'] !== '1' && $_SESSION['role'] !== 1) {
 }
 include('config.php');
 include 'layout/header.php';
+// Fetch charge once
+$chargeis = 0;
+$fetchServiceCharge = "SELECT service_charge FROM services WHERE service_name='aadhar'";
+$DataBirth = mysqli_query($conn, $fetchServiceCharge);
+if (mysqli_num_rows($DataBirth) > 0) {
+    $resData = mysqli_fetch_array($DataBirth);
+    $chargeis = $resData['service_charge'];
+}
 ?>
 
 
@@ -34,6 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $language = $_POST['language'];
     $name_local_language  = $_POST['name_local_language'];
     $address_local_language = $_POST['address_local_language'];
+    $status = isset($_POST['status']) ? $_POST['status'] : '';
+    $remark = isset($_POST['remark']) ? $_POST['remark'] : '';
     $id = $_POST['id'];
 
     if (empty($_FILES['image']['name'])) {
@@ -43,6 +53,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tempname = $_FILES['image']['tmp_name'];
         move_uploaded_file($tempname, '../assets/upload/' . $filename);
     }
+
+
+    // Get phone number
+    $getUser = mysqli_query($conn, "SELECT user_id FROM aadhar  WHERE id = $id");
+    $userData = mysqli_fetch_assoc($getUser);
+    if ($userData && isset($userData['user_id'])) {
+        $user_id = $userData['user_id'];
+    } else {
+        die("Invalid ID or user not found.");
+    }
+
+    if (empty($_FILES['certificate_file']['name'])) {
+        $filenamee = $_POST['oldimage'];
+    } else {
+        $filenamee = time() . $_FILES['certificate_file']['name'];
+        $tempnamee = $_FILES['certificate_file']['tmp_name'];
+        move_uploaded_file($tempnamee, '../assets/certificates/' . $filenamee);
+    }
+
+    $getPhone = mysqli_query($conn, "SELECT phone FROM user WHERE id = $user_id");
+    $phoneData = mysqli_fetch_assoc($getPhone);
+    $phone = $phoneData['phone'];
 
     $sql = "UPDATE aadhar set 
     aadhar_no = '$aadhar_no',
@@ -61,16 +93,108 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     image = '$filename',
     language = '$language',
     name_local_language = '$name_local_language',
-    address_local_language = '$address_local_language'
+    address_local_language = '$address_local_language',
+    status = '$status',
+    certificate_file = '$filenamee',
+    remark = '$remark'
     where id =$id";
 
     if (mysqli_query($conn, $sql)) {
-        echo "<script>
-        alert('Data Updated Successfullly');
-        window.location.href = 'aadharmanual_list.php';
-        </script>";
+        if ($status != "Rejected") {
+            $sql = "UPDATE aadhar SET status = '$status' WHERE id = $id";
+        } else {
+            $sql = "UPDATE aadhar SET status = '$status' WHERE id = $id";
+            $updtMainWallet = "UPDATE total_wallet_balence SET wallet_balence=wallet_balence+'$chargeis' WHERE user_id=$user_id";
+            mysqli_query($conn, $updtMainWallet);
+
+            $deductAdminWallet = "UPDATE admin_wallet SET amount = amount - '$chargeis' WHERE amount >= '$chargeis'";
+            $result = mysqli_query($conn, $deductAdminWallet);
+            // if (mysqli_affected_rows($conn) > 0) {
+            //     // Successfully deducted
+            // } else {
+            //     // Wallet balance insufficient – handle refund or show error
+            //     echo "Insufficient wallet balance. Cannot deduct ₹$chargeis.";
+            // }
+
+
+            // 3. Log refund in wallet_transaction_logs
+            $getBal = mysqli_query($conn, "SELECT wallet_balence FROM total_wallet_balence WHERE user_id = $user_id");
+            $balRow = mysqli_fetch_assoc($getBal);
+            $current_balance = $balRow['wallet_balence'];
+
+            // $transaction_id = 'TXN' . rand(10000, 99999);
+            $purpose = 'Refund: Aadhar Apply';
+            $type = 'debit';
+            $status = 1;
+
+            $insertLog = "INSERT INTO wallet_transaction_history
+            (user_id, amount, available_balance, purpose, type, status)
+            VALUES ($user_id, $chargeis, $current_balance, '$purpose', '$type', $status)";
+            mysqli_query($conn, $insertLog);
+        }
+
+        if ($phone) {
+            // Green API Details
+            $idInstance = "7105245778";
+            $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
+            $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+            // -----------------------------
+            // ✅ 1. Message to Applicant
+            // -----------------------------
+            $applicantNumber = "91" . $phone . "@c.us";
+            $messageToUser = "Hello $name, your application for the Aadhar Manual has been $status.\n\n" .
+                "remark : $remark\n\n" .
+                "Thank you!";
+
+            $dataUser = [
+                "chatId" => $applicantNumber,
+                "message" => $messageToUser
+            ];
+
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            $response1 = curl_exec($ch);
+            curl_close($ch);
+
+            // -----------------------------
+            // ✅ 2. Message to Admin
+            // -----------------------------
+            $adminNumber = "917266956455@c.us";
+            $messageToAdmin =
+                "Aadhar Manual Application $status is:\n\n" .
+                "name: $name\n\n" .
+                "Reason: $remark\n\n" .
+                "Application Status: $status\n";
+
+            $dataAdmin = [
+                "chatId" => $adminNumber,
+                "message" => $messageToAdmin
+            ];
+
+            $ch2 = curl_init($url);
+            curl_setopt($ch2, CURLOPT_POST, 1);
+            curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($dataAdmin));
+            curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            $response2 = curl_exec($ch2);
+            curl_close($ch2);
+
+
+            echo json_encode(['success' => true]);
+            echo "<script>
+            alert('Update Successfuly');
+            window.location.href = 'aadharmanual_list.php';
+           </script>";
+        } else {
+            echo json_encode(['success' => false, 'error' => mysqli_error($conn)]);
+        }
     }
 }
+
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
     $new_sql = "SELECT * FROM aadhar WHERE id = $id";
@@ -134,11 +258,28 @@ if (isset($_GET['id'])) {
                             <div class="row dgnform">
                                 <div class="col-sm-9">
                                     <div class="row">
+                                        <label for="status">Status</label>
+                                        <select class="form-select form-select-sm status-dropdown" name="status" data-id="<?= $row['id'] ?>">
+                                            <option value="Pending" <?= $row['status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
+                                            <option value="Process" <?= $row['status'] == 'Process' ? 'selected' : '' ?>>Process</option>
+                                            <option value="Approved" <?= $row['status'] == 'Approved' ? 'selected' : '' ?>>Approved</option>
+                                            <option value="Rejected" <?= $row['status'] == 'Rejected' ? 'selected' : '' ?>>Rejected</option>
+                                        </select>
+
+                                        <label for="remark">Remark</label>
+                                        <input type="text" name="remark" oninput="this.value = this.value.toUpperCase()" class="form-control" value="<?= $row['remark'] ?>"><br>
+                                        <label for="certificate">Upload Certificate</label>
+                                        <input type="hidden" name="oldimage" class="form-control ">
+                                        <img src="../assets/certificates/<?= $row['certificate_file'] ?>" alt="" height="50px" width="50px" class="">
+
+                                        <label for="certificate">Upload Certificate</label>
+                                        <input type="file" name="certificate_file" oninput="this.value = this.value.toUpperCase()" class="form-control" value="<?= $row['certificate_file'] ?>"><br>
+
                                         <input type="hidden" name="id" value="<?= $row['id'] ?>">
                                         <div class="col-sm-4">
                                             <label>Aadhar Card No.</label>
                                             <div class="form-group">
-                                                <input class="form-control" id="aadhar_no" placeholder="Aadharcard No..." autocomplete="off" name="aadhar_no" type="number" maxlength="12" required value="<?= $row['aadhar_no'] ?>">
+                                                <input class="form-control" id="aadhar_no" placeholder="Aadharcard No..." autocomplete="off" name="aadhar_no" type="number" maxlength="12" value="<?= $row['aadhar_no'] ?>">
                                                 <span id="erroraadharno" class="error"></span>
                                             </div>
                                         </div>
@@ -190,7 +331,7 @@ if (isset($_GET['id'])) {
                                         <div class="col-sm-4">
                                             <label>Date Of Birth</label>
                                             <div class="form-group">
-                                                <input class="form-control" name="dob" type="text" required placeholder="D.O.B.(dd/MM/yyyy)" value="<?= $row['dob'] ?>">
+                                                <input class="form-control" name="dob" type="text" placeholder="D.O.B.(dd/MM/yyyy)" value="<?= $row['dob'] ?>">
                                             </div>
                                         </div>
                                         <div class="col-sm-4">
@@ -201,7 +342,7 @@ if (isset($_GET['id'])) {
                                         <div class="col-md-4 col-sm-4 col-xs-6">
                                             <label>Select Gender</label>
                                             <div class="form-group">
-                                                <select class="form-control" name="gender" id="gender" required>
+                                                <select class="form-control" name="gender" id="gender">
                                                     <option value="">GENDER</option>
                                                     <option value="Male" <?= $row['gender'] == 'Male' ? 'selected' : '' ?> name="gender" id="gender">Male</option>
                                                     <option value="Female" <?= $row['gender'] == 'Female' ? 'selected' : '' ?> name="gender" id="gender">Female</option>
@@ -240,7 +381,7 @@ if (isset($_GET['id'])) {
                                         <div class="col-sm-3">
                                             <label>Select Local Language</label>
                                             <div class="form-group">
-                                                <select class="form-control" onchange="changelang()" name="language" id="language" required>
+                                                <select class="form-control" onchange="changelang()" name="language" id="language">
                                                     <option value="">SELECT </option>
                                                     <option value="hindi" <?= $row['language'] == 'hindi' ? 'selected' : '' ?>>Hindi </option>
                                                     <option value="punjabi" <?= $row['language'] == 'punjabi' ? 'selected' : '' ?>>Punjabi </option>

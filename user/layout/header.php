@@ -31,7 +31,12 @@
     <link rel="stylesheet" href="../assets/css/header-colors.css" />
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
-    <title>Welcome TO - Psprint</title>
+    <title>Welcome TO - Instant Online Solution</title>
+    <!-- <style>
+        .logo-text{
+            font
+        }
+    </style> -->
 </head>
 
 <body>
@@ -43,10 +48,10 @@
         <div class="sidebar-wrapper" data-simplebar="true">
             <div class="sidebar-header">
                 <div>
-                    <img src="../assets/images/logo.png" class="logo-icon" alt="logo icon">
+                    <img src="../assets/images/logo.gif" class="logo-icon" alt="logo icon" height="20px" width="70px">
                 </div>
                 <div>
-                    <h4 class="logo-text">PSPRINT</h4>
+                    <h5 class="logo-text" style="font-size: 16px; padding-left:20px;">Instant Online Solution</h5>
                 </div>
                 <div class="toggle-icon ms-auto"><i class='bx bx-arrow-to-left'></i>
                 </div>
@@ -75,7 +80,7 @@
                         </li>
                         <li> <a href="recharge_history.php"><i class="bx bx-right-arrow-alt"></i>Recharge History</a>
                         </li>
-                        <!-- <li> <a href="wallet_history.php"><i class="bx bx-right-arrow-alt"></i>Wallet History</a> -->
+                        <li> <a href="wallet_history.php"><i class="bx bx-right-arrow-alt"></i>Wallet History</a>
                 </li>
 
             </ul>

@@ -24,14 +24,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update database using procedural style
             $sql = "UPDATE licence SET certificate_file = '$safePath' WHERE id = $safeId";
             if (mysqli_query($conn, $sql)) {
-                echo "<script>alert('Certificate uploaded successfully!');history.back();</script>";
+                echo "success"; // 👈 AJAX ke liye plain text
             } else {
-                echo "<script>alert('Database update failed.');history.back();</script>";
+                echo "Database update failed.";
             }
         } else {
-            echo "<script>alert('File upload failed.');history.back();</script>";
+            echo "File upload failed.";
         }
     } else {
-        echo "<script>alert('No file selected or upload error.');history.back();</script>";
+        echo "No file selected.";
     }
 }

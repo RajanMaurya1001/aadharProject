@@ -9,8 +9,18 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['role'])) {
 if ($_SESSION['role'] !== '1' && $_SESSION['role'] !== 1) {
     die("Access Denied!");
 }
+$id = $_SESSION['id'];
 include('config.php');
 include 'layout/header.php';
+
+// Fetch charge once
+$chargeis = 0;
+$fetchServiceCharge = "SELECT service_charge FROM services WHERE service_name='pm_kissan_seeding'";
+$DataBirth = mysqli_query($conn, $fetchServiceCharge);
+if (mysqli_num_rows($DataBirth) > 0) {
+    $resData = mysqli_fetch_array($DataBirth);
+    $chargeis = $resData['service_charge'];
+}
 ?>
 
 
@@ -23,10 +33,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $reg_no = $_POST['reg_no'];
     $aadhar_no = $_POST['aadhar_no'];
     $name = $_POST['name'];
-    $status = 'pending';
+    $status = isset($_POST['status']) ? $_POST['status'] : '';
+    $remark = isset($_POST['remark']) ? $_POST['remark'] : '';
     $id = $_POST['id'];
 
 
+    // Get phone number
+    $getUser = mysqli_query($conn, "SELECT user_id FROM pm_kissan WHERE id = $id");
+    $userData = mysqli_fetch_assoc($getUser);
+    if ($userData && isset($userData['user_id'])) {
+        $user_id = $userData['user_id'];
+    } else {
+        die("Invalid ID or user not found.");
+    }
+
+    $getPhone = mysqli_query($conn, "SELECT phone FROM user WHERE id = $user_id");
+    $phoneData = mysqli_fetch_assoc($getPhone);
+    $phone = $phoneData['phone'];
+
+    if (empty($_FILES['certificate_file']['name'])) {
+        $filename = $_POST['oldimage'];
+    } else {
+        $filename = time() . $_FILES['certificate_file']['name'];
+        $tempname = $_FILES['certificate_file']['tmp_name'];
+        move_uploaded_file($tempname, '../assets/certificates/' . $filename);
+    }
 
     $currentYear = date('Y');
     $prefix = 'PM_APP' . $currentYear;
@@ -48,15 +79,119 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          district = '$district',
          reg_no = '$reg_no',
          aadhar_no = '$aadhar_no',
-         name = '$name'
+         name = '$name',
+         status = '$status',
+         certificate_file = '$filename',
+         remark = '$remark'
          where  id = $id";
+
     if (mysqli_query($conn, $sql)) {
-        echo "<script>
-        alert('Data Updated Successfully');
-         window.location.href= 'pm_kishan_list.php';
-        </script>";
+        if ($status != "Rejected") {
+            // Escape variables for safety
+            $status = mysqli_real_escape_string($conn, $status);
+            $id = intval($id); // Ensure ID is integer
+
+            $sql = "UPDATE pm_kissan SET status = '$status' WHERE id = $id";
+            $updateResult = mysqli_query($conn, $sql);
+        } else {
+            // Escape variables
+            $status = mysqli_real_escape_string($conn, $status);
+            $id = intval($id);
+            $chargeis = floatval($chargeis); // Ensure numeric value
+            $user_id = intval($user_id);
+
+            // Update ration status
+            $sql = "UPDATE pm_kissan SET status = '$status' WHERE id = $id";
+            $updateResult = mysqli_query($conn, $sql);
+
+            // Update main wallet
+            $updtMainWallet = "UPDATE total_wallet_balence SET wallet_balence = wallet_balence + $chargeis WHERE user_id = $user_id";
+            mysqli_query($conn, $updtMainWallet);
+
+            // Deduct from admin wallet
+            $deductAdminWallet = "UPDATE admin_wallet SET amount = amount - $chargeis";
+            mysqli_query($conn, $deductAdminWallet);
+
+            // Get current balance
+            $getBal = mysqli_query($conn, "SELECT wallet_balence FROM total_wallet_balence WHERE user_id = $user_id");
+            $balRow = mysqli_fetch_assoc($getBal);
+
+            if ($balRow && isset($balRow['wallet_balence'])) {
+                $current_balance = $balRow['wallet_balence'];
+
+                // Insert wallet transaction log
+                $purpose = 'Refund: Pm Kissan Apply';
+                $type = 'debit';
+                $log_status = 1; // Changed variable name to avoid conflict with $status
+
+                // Escape strings
+                $purpose = mysqli_real_escape_string($conn, $purpose);
+                $type = mysqli_real_escape_string($conn, $type);
+
+                $insertLog = "INSERT INTO wallet_transaction_history 
+                (user_id, amount, available_balance, purpose, type, status)
+                VALUES ($user_id, $chargeis, $current_balance, '$purpose', '$type', $log_status)";
+
+                mysqli_query($conn, $insertLog);
+            } else {
+                // Handle case where user wallet record doesn't exist
+                echo json_encode(['success' => false, 'error' => 'Wallet balance not found for this user!']);
+                exit;
+            }
+        }
+
+        if ($phone) {
+            $idInstance = "7105245778";
+            $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
+            $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+            $applicantNumber = "91{$phone}@c.us";
+            $messageToUser = "Hello, {$name} your application for the PM Kishan has been {$status}.\n\n" .
+                "Remark: {$remark}\n\nThank you!";
+
+            $dataUser = [
+                "chatId" => $applicantNumber,
+                "message" => $messageToUser
+            ];
+
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            $response1 = curl_exec($ch);
+            curl_close($ch);
+
+            $adminNumber = "917266956455@c.us";
+            $messageToAdmin = "PM Kishan Application $status:\n\nName: $name\nReason: $remark\nStatus: $status";
+
+            $dataAdmin = [
+                "chatId" => $adminNumber,
+                "message" => $messageToAdmin
+            ];
+
+            $ch2 = curl_init($url);
+            curl_setopt($ch2, CURLOPT_POST, 1);
+            curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($dataAdmin));
+            curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            $response2 = curl_exec($ch2);
+            curl_close($ch2);
+
+
+
+            echo json_encode(['success' => true]);
+            echo "<script>
+            alert('Update Successfuly');
+            window.location.href = 'pm_kishan_list.php';
+           </script>";
+        } else {
+            echo json_encode(['success' => false, 'error' => mysqli_error($conn)]);
+        }
+        exit;
     }
 }
+
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
     $new_sql = "SELECT * FROM pm_kissan WHERE id = $id";
@@ -112,13 +247,32 @@ if (isset($_GET['id'])) {
                                             1 Weak me kam ho jayga <br>
 
                                         </div>
-                                        <form name="" action="" method="post" id="Job_print">
+                                        <form name="" action="" method="post" id="Job_print" enctype="multipart/form-data">
+
                                             <div class="card-body">
                                                 <div class="col-md-12">
                                                     <div class="form-group">
+
+                                                        <label for="status">Status</label>
+                                                        <select class="form-select form-select-sm status-dropdown" name="status" data-id="<?= $row['id'] ?>">
+                                                            <option value="Pending" <?= $row['status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
+                                                            <option value="Process" <?= $row['status'] == 'Process' ? 'selected' : '' ?>>Process</option>
+                                                            <option value="Approved" <?= $row['status'] == 'Approved' ? 'selected' : '' ?>>Approved</option>
+                                                            <option value="Rejected" <?= $row['status'] == 'Rejected' ? 'selected' : '' ?>>Rejected</option>
+                                                        </select>
+
+                                                        <label for="remark">Remark</label>
+                                                        <input type="text" name="remark" oninput="this.value = this.value.toUpperCase()" class="form-control" value="<?= $row['remark'] ?>"><br>
+                                                        <!-- <label for="certificate">Upload Certificate</label> -->
+                                                        <input type="hidden" name="oldimage" class="form-control ">
+                                                        <img src="../assets/certificates/<?= $row['certificate_file'] ?>" alt="" height="50px" width="50px" class="">
+
+                                                        <label for="certificate">Upload Certificate</label>
+                                                        <input type="file" name="certificate_file" oninput="this.value = this.value.toUpperCase()" class="form-control" value="<?= $row['certificate_file'] ?>"><br>
+
                                                         <input type="hidden" name="id" value="<?= $row['id'] ?>">
                                                         <label class="card-title" for="state">State</label>
-                                                        <select name="state" id="state" required="" class="form-control">
+                                                        <select name="state" id="state" class="form-control">
                                                             <option value="">Select State</option>
                                                             <option value="UTTAR PRADESH" <?= $row['state'] == 'Uttar Pradesh' ? 'selected' : '' ?>>Uttar Pradesh</option>
                                                             <option value="JHARKHAND" <?= $row['state'] == 'JHARKHAND' ? 'selected' : '' ?>>JHARKHAND</option>
@@ -138,7 +292,7 @@ if (isset($_GET['id'])) {
                                                 <div class="col-md-12">
                                                     <div class="form-group">
                                                         <label class="card-title" for="registration">Registration Number</label>
-                                                        <input type="text" required="" class="form-control" name="reg_no" id="registration" placeholder="Enter Registration Number" value="<?= $row['reg_no'] ?>">
+                                                        <input type="text"="" class="form-control" name="reg_no" id="registration" placeholder="Enter Registration Number" value="<?= $row['reg_no'] ?>">
                                                     </div>
                                                 </div>
                                             </div>
@@ -146,7 +300,7 @@ if (isset($_GET['id'])) {
                                                 <div class="col-md-12">
                                                     <div class="form-group">
                                                         <label class="card-title" for="aadhar">Aadhar Number</label>
-                                                        <input type="text" required="" class="form-control" name="aadhar_no" id="aadhar" placeholder="Enter Aadhar Number" value="<?= $row['aadhar_no'] ?>">
+                                                        <input type="text"="" class="form-control" name="aadhar_no" id="aadhar" placeholder="Enter Aadhar Number" value="<?= $row['aadhar_no'] ?>">
                                                     </div>
                                                 </div>
                                             </div>
@@ -154,12 +308,12 @@ if (isset($_GET['id'])) {
                                                 <div class="col-md-12">
                                                     <div class="form-group">
                                                         <label class="card-title" for="name">Name</label>
-                                                        <input type="text" required="" class="form-control" name="name" id="name" placeholder="Customer Name" value="<?= $row['name'] ?>">
+                                                        <input type="text"="" class="form-control" name="name" id="name" placeholder="Customer Name" value="<?= $row['name'] ?>">
                                                     </div>
                                                 </div>
                                             </div>
                                             <?php
-                                            $fee_sql = "SELECT * from services where service_name = 'PM kishan seading'";
+                                            $fee_sql = "SELECT * from services where service_name = 'pm_kissan_seeding'";
                                             $fee_data = mysqli_query($conn, $fee_sql);
                                             if (mysqli_num_rows($fee_data) > 0) {
                                                 $row = mysqli_fetch_assoc($fee_data);

@@ -136,13 +136,17 @@
 
 <?php
 session_start();
-include('../psprint/assets/config/config.php');
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+include('assets/config/config.php');
+// include('../instantonlinesolution/assets/config/config.php');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     $password = $_POST['password'];
     // $_SESSION['id'] = $user['id'];
 
-    $sql = "SELECT id, email,phone, role FROM user WHERE email = '$email' AND password = '$password'";
+    $sql = "SELECT id, email,phone,name, role FROM user WHERE email = '$email' AND password = '$password'";
     $data = mysqli_query($conn, $sql);
 
 
@@ -154,12 +158,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['role'] = $user['role'];
         $_SESSION['mobile_number'] = $user['phone'];
         $_SESSION['name'] = $user['name'];
+
+
         // $_SESSION['user_id'] = $user['id'];
 
         if ($user['role'] == 1) {
-            header("Location: ../psprint/admin/index.php");
+            header("Location: admin/index.php");
         } else {
-            header("Location: ../psprint/user/index.php");
+            header("Location: user/index.php");
         }
         exit();
     } else {
@@ -192,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="remember-me">
                     <input type="checkbox"> Remember me
                 </label>
-                <a href="#" class="forgot-password">Forgot Password?</a>
+                <a href="forget_password.php" class="forgot-password">Forgot Password?</a>
             </div>
 
             <button type="submit">Log In</button>
@@ -201,7 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="divider"></div>
 
         <div class="signup-link">
-            Don't have an account? <a href="registration.html">Sign Up</a>
+            Don't have an account? <a href="registration.php">Sign Up</a>
         </div>
     </div>
 

@@ -10,245 +10,17 @@ if ($_SESSION['role'] !== '1' && $_SESSION['role'] !== 1) {
 }
 include('config.php');
 include 'layout/header.php';
-
+// Fetch charge once
+$chargeis = 0;
+$fetchServiceCharge = "SELECT service_charge FROM services WHERE service_name='pan'";
+$DataBirth = mysqli_query($conn, $fetchServiceCharge);
+if (mysqli_num_rows($DataBirth) > 0) {
+    $resData = mysqli_fetch_array($DataBirth);
+    $chargeis = $resData['service_charge'];
+}
 
 ?>
-<!--start header -->
-<header>
-    <div class="topbar d-flex align-items-center">
-        <nav class="navbar navbar-expand">
-            <div class="mobile-toggle-menu"><i class='bx bx-menu'></i>
-            </div>
-            <div class="search-bar flex-grow-1">
 
-
-
-            </div>
-            <div style="margin-right:12px;" class="text-success">
-                <style>
-                    #time {
-                        color: white;
-                        font-size: 18px;
-                        font-family: "Times New Roman", Times, serif;
-                    }
-                </style>
-                <a id="time"></a>
-                <script>
-                    var timeDisplay = document.getElementById("time");
-
-                    function refreshTime() {
-                        var dateString = new Date().toLocaleString("en-IN", {
-                            timeZone: "Asia/Kolkata"
-                        });
-                        var formattedString = dateString.replace(", ", " - ");
-                        timeDisplay.innerHTML = formattedString;
-                    }
-
-                    setInterval(refreshTime, 1000);
-                </script>
-            </div>
-            <a class="btn btn-warning" href="wallet.php">Wallet: ₹146</a>
-            <div class="top-menu ms-auto">
-                <ul class="navbar-nav align-items-center">
-
-                    <li class="nav-item dropdown dropdown-large">
-                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#"
-                            role="button" data-bs-toggle="dropdown" aria-expanded="false"> <span
-                                class="alert-count">7</span>
-                            <i class='bx bx-bell'></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a href="javascript:;">
-                                <div class="msg-header">
-                                    <p class="msg-header-title">Notifications</p>
-                                    <p class="msg-header-clear ms-auto">Marks all as read</p>
-                                </div>
-                            </a>
-                            <div class="header-notifications-list">
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-primary text-primary"><i
-                                                class="bx bx-group"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New Customers<span
-                                                    class="msg-time float-end">14 Sec
-                                                    ago</span></h6>
-                                            <p class="msg-info">5 new user registered</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-danger text-danger"><i
-                                                class="bx bx-cart-alt"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New Orders <span class="msg-time float-end">2
-                                                    min
-                                                    ago</span></h6>
-                                            <p class="msg-info">You have recived new orders</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-success text-success"><i
-                                                class="bx bx-file"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">24 PDF File<span class="msg-time float-end">19
-                                                    min
-                                                    ago</span></h6>
-                                            <p class="msg-info">The pdf files generated</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-warning text-warning"><i
-                                                class="bx bx-send"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">Time Response <span
-                                                    class="msg-time float-end">28 min
-                                                    ago</span></h6>
-                                            <p class="msg-info">5.1 min avarage time response</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-info text-info"><i
-                                                class="bx bx-home-circle"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New Product Approved <span
-                                                    class="msg-time float-end">2 hrs ago</span></h6>
-                                            <p class="msg-info">Your new product has approved</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-danger text-danger"><i
-                                                class="bx bx-message-detail"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New Comments <span class="msg-time float-end">4
-                                                    hrs
-                                                    ago</span></h6>
-                                            <p class="msg-info">New customer comments recived</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-success text-success"><i
-                                                class='bx bx-check-square'></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">Your item is shipped <span
-                                                    class="msg-time float-end">5 hrs
-                                                    ago</span></h6>
-                                            <p class="msg-info">Successfully shipped your item</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-primary text-primary"><i
-                                                class='bx bx-user-pin'></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">New 24 authors<span
-                                                    class="msg-time float-end">1 day
-                                                    ago</span></h6>
-                                            <p class="msg-info">24 new authors joined last week</p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item" href="javascript:;">
-                                    <div class="d-flex align-items-center">
-                                        <div class="notify bg-light-warning text-warning"><i
-                                                class='bx bx-door-open'></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="msg-name">Defense Alerts <span
-                                                    class="msg-time float-end">2 weeks
-                                                    ago</span></h6>
-                                            <p class="msg-info">45% less alerts last 4 weeks</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
-                            <a href="javascript:;">
-                                <div class="text-center msg-footer">View All Notifications</div>
-                            </a>
-                        </div>
-                    </li>
-
-                    <li class="nav-item dropdown dropdown-large">
-                        <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#"
-                            role="button" data-bs-toggle="dropdown" aria-expanded="false"> <span
-                                class="alert-count">0</span>
-                            <i class='bx bx-comment'></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a href="javascript:;">
-                                <div class="msg-header">
-                                    <p class="msg-header-title">Messages</p>
-                                    <p class="msg-header-clear ms-auto">Marks all as read</p>
-                                </div>
-                            </a>
-                            <div class="header-message-list">
-
-
-                            </div>
-                            <a href="javascript:;">
-                                <div class="text-center msg-footer">View All Messages</div>
-                            </a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-            <div class="user-box dropdown">
-                <a class="d-flex align-items-center nav-link dropdown-toggle dropdown-toggle-nocaret" href="#"
-                    role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="../template/ahkweb/assets/images/avatars/avatar-2.png" class="user-img"
-                        alt="user avatar">
-                    <div class="user-info ps-3">
-                        <p class="user-name mb-0">IT DEPARTMENT</p>
-                        <p class="designattion mb-0"></p>
-                    </div>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="profile.php"><i
-                                class="bx bx-user"></i><span>Profile</span></a>
-                    </li>
-                    <li><a class="dropdown-item" href="javascript:;"><i
-                                class="bx bx-cog"></i><span>Settings</span></a>
-                    </li>
-                    <li><a class="dropdown-item" href="javascript:;"><i
-                                class='bx bx-home-circle'></i><span>Dashboard</span></a>
-                    </li>
-                    <li><a class="dropdown-item" href="javascript:;"><i
-                                class='bx bx-dollar-circle'></i><span>Earnings</span></a>
-                    </li>
-                    <li><a class="dropdown-item" href="javascript:;"><i
-                                class='bx bx-download'></i><span>Downloads</span></a>
-                    </li>
-                    <li>
-                        <div class="dropdown-divider mb-0"></div>
-                    </li>
-                    <li><a class="dropdown-item" href="../includes/logout.php"><i
-                                class='bx bx-log-out-circle'></i><span>Logout</span></a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </div>
-</header>
 
 <?php
 
@@ -259,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fName = $_POST['fName'];
     $dob = $_POST['dob'];
     $gender = $_POST['gender'];
+    $status = isset($_POST['status']) ? $_POST['status'] : '';
+    $remark = isset($_POST['remark']) ? $_POST['remark'] : '';
     $id = $_POST['id'];
 
 
@@ -279,6 +53,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
 
+    // Get phone number
+    $getUser = mysqli_query($conn, "SELECT user_id FROM aadhar  WHERE id = $id");
+    $userData = mysqli_fetch_assoc($getUser);
+    if ($userData && isset($userData['user_id'])) {
+        $user_id = $userData['user_id'];
+    } else {
+        die("Invalid ID or user not found.");
+    }
+
+
+    $getPhone = mysqli_query($conn, "SELECT phone FROM user WHERE id = $user_id");
+    $phoneData = mysqli_fetch_assoc($getPhone);
+    $phone = $phoneData['phone'];
+
+
+    if (empty($_FILES['certificate_file']['name'])) {
+        $filenameee = $_POST['oldimage'];
+    } else {
+        $filenameee = time() . $_FILES['certificate_file']['name'];
+        $tempnameee = $_FILES['certificate_file']['tmp_name'];
+        move_uploaded_file($tempnameee, '../assets/certificates/' . $filenameee);
+    }
 
 
 
@@ -293,18 +89,131 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     dob = '$dob', 
     gender = '$gender',
     image = '$filename',
-    sign_image = '$filenamee'
+    sign_image = '$filenamee',
+    status = '$status',
+    certificate_file = '$filenameee',
+    remark = '$remark'
 WHERE id = $id";
 
     // echo $sql;
     // die();
     if (mysqli_query($conn, $sql)) {
-        echo  "<script>
-        alert('Data Updated Succesfully');
-        window.location.href= 'pan_manual_list.php'
-        </script>";
+        if ($status != "Rejected") {
+            // Escape variables for safety
+            $status = mysqli_real_escape_string($conn, $status);
+            $id = intval($id); // Ensure ID is integer
+
+            $sql = "UPDATE pan SET status = '$status' WHERE id = $id";
+            mysqli_query($conn, $sql);
+
+            echo "<script>console.log(" . json_encode($sql) . ");</script>";
+        } else {
+            // Escape variables
+            $status = mysqli_real_escape_string($conn, $status);
+            $id = intval($id);
+            $chargeis = floatval($chargeis); // Ensure numeric value
+            $user_id = intval($user_id);
+
+            // Update ration status
+            $sql = "UPDATE pan SET status = '$status' WHERE id = $id";
+            mysqli_query($conn, $sql);
+
+            // Update main wallet
+            $updtMainWallet = "UPDATE total_wallet_balence SET wallet_balence = wallet_balence + $chargeis WHERE user_id = $user_id";
+            mysqli_query($conn, $updtMainWallet);
+
+            // Deduct from admin wallet
+            $deductAdminWallet = "UPDATE admin_wallet SET amount = amount - $chargeis";
+            mysqli_query($conn, $deductAdminWallet);
+
+            // Get current balance
+            $getBal = mysqli_query($conn, "SELECT wallet_balence FROM total_wallet_balence WHERE user_id = $user_id");
+            $balRow = mysqli_fetch_assoc($getBal);
+
+            if ($balRow && isset($balRow['wallet_balence'])) {
+                $current_balance = $balRow['wallet_balence'];
+
+                // Insert wallet transaction log
+                $purpose = 'Refund: Pan Details Apply';
+                $type = 'debit';
+                $log_status = 1; // Changed variable name to avoid conflict with $status
+
+                // Escape strings
+                $purpose = mysqli_real_escape_string($conn, $purpose);
+                $type = mysqli_real_escape_string($conn, $type);
+
+                $insertLog = "INSERT INTO wallet_transaction_history 
+                (user_id, amount, available_balance, purpose, type, status)
+                VALUES ($user_id, $chargeis, $current_balance, '$purpose', '$type', $log_status)";
+
+                mysqli_query($conn, $insertLog);
+            } else {
+                // Handle case where user wallet record doesn't exist
+                echo "<script>alert('Wallet balance not found for this user!');</script>";
+            }
+        }
+
+        if (mysqli_query($conn, $sql)) {
+            // Green API Details
+            $idInstance = "7105245778";
+            $apiToken = "ff89b835f24d423aa7e7d5602804bcdcc098a9c6d1604bebb5";
+            $url = "https://7105.api.greenapi.com/waInstance$idInstance/sendMessage/$apiToken";
+
+            // -----------------------------
+            // ✅ 1. Message to Applicant
+            // -----------------------------
+            $applicantNumber = "91" . $phone . "@c.us";
+            $messageToUser = "Hello $name, your application for the Pan Manual has been $status.\n\n" .
+                "remark : $remark\n\n" .
+                "Thank you!";
+
+            $dataUser = [
+                "chatId" => $applicantNumber,
+                "message" => $messageToUser
+            ];
+
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($dataUser));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            $response1 = curl_exec($ch);
+            curl_close($ch);
+
+            // -----------------------------
+            // ✅ 2. Message to Admin
+            // -----------------------------
+            $adminNumber = "917266956455@c.us";
+            $messageToAdmin =
+                "Pan Manual Application $status is:\n\n" .
+                "name: $name\n\n" .
+                "Reason: $remark\n\n" .
+                "Application Status: $status\n";
+
+            $dataAdmin = [
+                "chatId" => $adminNumber,
+                "message" => $messageToAdmin
+            ];
+
+            $ch2 = curl_init($url);
+            curl_setopt($ch2, CURLOPT_POST, 1);
+            curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($dataAdmin));
+            curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch2, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            $response2 = curl_exec($ch2);
+            curl_close($ch2);
+
+            echo json_encode(['success' => true]);
+            echo "<script>
+            alert('Update Successfuly');
+            window.location.href = 'pan_manual_list.php';
+           </script>";
+        } else {
+            echo json_encode(['success' => false, 'error' => mysqli_error($conn)]);
+        }
     }
 }
+
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
@@ -365,7 +274,24 @@ if (isset($_GET['id'])) {
                             <div class="row dgnform">
                                 <div class="col-sm-9">
                                     <div class="row">
+                                        <select class="form-select form-select-sm status-dropdown" name="status" data-id="<?= $row['id'] ?>">
+                                            <option value="Pending" <?= $row['status'] == 'Pending' ? 'selected' : '' ?>>Pending</option>
+                                            <option value="Process" <?= $row['status'] == 'Process' ? 'selected' : '' ?>>Process</option>
+                                            <option value="Approved" <?= $row['status'] == 'Approved' ? 'selected' : '' ?>>Approved</option>
+                                            <option value="Rejected" <?= $row['status'] == 'Rejected' ? 'selected' : '' ?>>Rejected</option>
+                                        </select>
+
+                                        <label for="remark">Remark</label>
+                                        <input type="text" name="remark" oninput="this.value = this.value.toUpperCase()" class="form-control" value="<?= $row['remark'] ?>"><br>
+                                        <label for="certificate">Upload Certificate</label>
+                                        <input type="hidden" name="oldimage" class="form-control ">
+                                        <img src="../assets/certificates/<?= $row['certificate_file'] ?>" alt="" height="50px" width="50px" class="">
+
+                                        <label for="certificate">Upload Certificate</label>
+                                        <input type="file" name="certificate_file" oninput="this.value = this.value.toUpperCase()" class="form-control" value="<?= $row['certificate_file'] ?>"><br>
+
                                         <div class="col-sm-12">
+
                                             <input type="hidden" name="id" value="<?= $row['id'] ?>">
                                             <label>Select Pan Card Type</label>
                                             <div class="form-group ">
@@ -380,14 +306,14 @@ if (isset($_GET['id'])) {
                                         <div class="col-sm-12">
                                             <label>Pan Card No.</label>
                                             <div class="form-group">
-                                                <input class="form-control stylec" value="<?= $row['pan_no'] ?>" id="pannumber" placeholder="" autocomplete="off" name="pan_no" type="text" maxlength="10" required onkeyup="this.value = this.value.toUpperCase();" onblur='ValidatePAN(this)'>
+                                                <input class="form-control stylec" value="<?= $row['pan_no'] ?>" id="pannumber" placeholder="" autocomplete="off" name="pan_no" type="text" maxlength="10" onkeyup="this.value = this.value.toUpperCase();" onblur='ValidatePAN(this)'>
                                                 <span id="erroraadharno" class="error"></span>
                                             </div>
                                         </div></br>
                                         <div class="col-sm-12">
                                             <label>Name</label>
                                             <div class="form-group">
-                                                <input class="form-control stylec" value="<?= $row['name'] ?>" id="name" placeholder="" name="name" type="text" required onkeyup="this.value = this.value.toUpperCase();">
+                                                <input class="form-control stylec" value="<?= $row['name'] ?>" id="name" placeholder="" name="name" type="text" onkeyup="this.value = this.value.toUpperCase();">
 
 
 
@@ -403,7 +329,7 @@ if (isset($_GET['id'])) {
                                         <div class="col-sm-6">
                                             <label>Date Of Birth</label>
                                             <div class="form-group">
-                                                <input class="form-control stylec" name="dob" data-field="date" type="text" value="<?= $row['dob'] ?>" required placeholder="D.O.B.(dd/MM/yyyy)">
+                                                <input class="form-control stylec" name="dob" data-field="date" type="text" value="<?= $row['dob'] ?>" placeholder="D.O.B.(dd/MM/yyyy)">
 
                                             </div>
                                         </div>
@@ -412,7 +338,7 @@ if (isset($_GET['id'])) {
                                             <label>Gender </label>
                                             <div class="form-group ">
 
-                                                <select name="gender" class="form-control stylec" required>
+                                                <select name="gender" class="form-control stylec">
                                                     <option value=""></option>
                                                     <option value="Male" <?= $row['gender'] == 'Male' ? 'selected' : '' ?>>Male</option>
                                                     <option value="Female" <?= $row['gender'] == 'Female' ? 'selected' : '' ?>>Female</option>
@@ -426,7 +352,7 @@ if (isset($_GET['id'])) {
                                             <input type="hidden" name="oldimage" class="form-control " value="<?= $row['image'] ?>">
                                             <img src="../assets/panimages/<?= $row['image'] ?>" alt="" height="50px" width="50px" class="">
                                             <div class="form-group">
-                                                <input type="file" name="image" class="form-control stylec" id="imgInp" required />
+                                                <input type="file" name="image" class="form-control stylec" id="imgInp" />
                                                 <img src="" id="blah" width="100px" height="100px" style="margin-top: 12px;
     box-shadow: 4px 4px 2px 1px;
     border-radius: 10px;" />
@@ -439,7 +365,7 @@ if (isset($_GET['id'])) {
                                             <input type="hidden" name="sign_image_old" class="form-control " value="<?= $row['sign_image'] ?>">
                                             <img src="../assets/panimages/<?= $row['sign_image'] ?>" alt="" height="50px" width="50px" class="">
                                             <div class="form-group">
-                                                <input type="file" name="sign_image" class="form-control stylec" id="signInp" required />
+                                                <input type="file" name="sign_image" class="form-control stylec" id="signInp" />
                                                 <img src="" id="blahs" width="100px" height="100px" style="margin-top: 12px;
     box-shadow: 4px 4px 2px 1px;
     border-radius: 10px;" />

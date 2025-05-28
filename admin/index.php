@@ -9,6 +9,7 @@ if ($_SESSION['role'] !== '1' && $_SESSION['role'] !== 1) {
     die("Access Denied!");
 }
 include 'layout/header.php';
+include 'config.php';
 ?>
 
 <div class="page-wrapper">
